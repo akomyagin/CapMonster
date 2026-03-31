@@ -4,19 +4,19 @@ declare(strict_types=1);
 
 namespace CapMonsterClient;
 
+use CapMonsterClient\Common\Exception\CapMonsterException;
 use CapMonsterClient\Dto\Solution\AbstractSolution;
 use CapMonsterClient\Dto\Task\AbstractTask;
-use Psr\Http\Client\ClientExceptionInterface;
 
 interface CapMonsterClientInterface
 {
     /**
-     * @throws ClientExceptionInterface
+     * @throws CapMonsterException
      */
     public function getBalance(): float;
 
     /**
-     * @throws ClientExceptionInterface
+     * @throws CapMonsterException
      */
     public function runTask(AbstractTask $task): AbstractSolution;
 }

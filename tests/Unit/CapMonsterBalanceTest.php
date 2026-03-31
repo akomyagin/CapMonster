@@ -26,21 +26,21 @@ final class CapMonsterBalanceTest extends AbstractTestCase
 
     public function testBalanceWithError(): void
     {
+        $this->expectException(CapMonsterException::class);
         $client = new CapMonsterClient(
-            $this->createHttpClient(['balance' => (99000 + rand(100, 999))/100]),
+            $this->createHttpClient(['balance' => '99001']),
             $this->configuration
         );
-        $balance = $client->getBalance();
-        $this->assertSame(self::BALANCE, $balance);
+        $client->getBalance();
     }
 
     public function testBalanceWithNotCode200(): void
     {
+        $this->expectException(CapMonsterException::class);
         $client = new CapMonsterClient(
-            $this->createHttpClient(['balance' => (98000 + rand(100, 999))/100]),
+            $this->createHttpClient(['balance' => '98001']),
             $this->configuration
         );
-        $balance = $client->getBalance();
-        $this->assertSame(self::BALANCE, $balance);
+        $client->getBalance();
     }
 }

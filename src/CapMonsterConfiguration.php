@@ -17,7 +17,10 @@ final class CapMonsterConfiguration
         'method' => 'POST',
         'callbackUrl' => null,
         'baseUrl' => 'https://api.capmonster.cloud',
-        'headers' => [],
+        'headers' => [
+            'Content-Type' => 'application/json',
+            'Accept' => 'application/json',
+        ],
     ];
 
     private const DEFAULT_TIMEOUTS = [
@@ -72,7 +75,7 @@ final class CapMonsterConfiguration
 
     public function getHeaders(): array
     {
-        return [];
+        return $this->config->getHeaders();
     }
 
     /**
@@ -91,14 +94,32 @@ final class CapMonsterConfiguration
 
     private function mergeConfig(array $config): array
     {
-        $timeouts = array_merge(self::DEFAULT_TIMEOUTS, $config['timeouts'] ?? []);
+        $timeouts = $this->mergeTimeouts($config['timeouts'] ?? []);
         unset($config['timeouts']);
-        $config = array_merge_recursive(self::DEFAULT_CONFIG, $config);
+        $config = array_merge(self::DEFAULT_CONFIG, $config);
         $config['timeouts'] = $timeouts;
         foreach ($config['timeouts'] as &$timeout) {
-            $timeout['taskType'] = ($timeout['taskType'])->value;
+            if ($timeout['taskType'] instanceof TypeTask) {
+                $timeout['taskType'] = $timeout['taskType']->value;
+            }
         }
 
         return $config;
+    }
+
+    private function mergeTimeouts(array $customTimeouts): array
+    {
+        $timeouts = [];
+        foreach (self::DEFAULT_TIMEOUTS as $timeout) {
+            $timeouts[$timeout['taskType']->value] = $timeout;
+        }
+        foreach ($customTimeouts as $timeout) {
+            $taskType = $timeout['taskType'] instanceof TypeTask
+                ? $timeout['taskType']->value
+                : (string) $timeout['taskType'];
+            $timeouts[$taskType] = $timeout;
+        }
+
+        return array_values($timeouts);
     }
 }

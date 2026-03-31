@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace CapMonsterClient\Common\Dto\Request;
 
+use CapMonsterClient\Enum\ApiMethod;
+
 abstract class AbstractRequest
 {
     public function __construct(
@@ -15,4 +17,6 @@ abstract class AbstractRequest
     {
         return $this->clientKey;
     }
+
+    abstract public function getMethod(): ApiMethod;
 }

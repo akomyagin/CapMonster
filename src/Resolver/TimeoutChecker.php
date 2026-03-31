@@ -17,11 +17,11 @@ final class TimeoutChecker
     public function resolve(
         TimeoutConfig $timeoutConfig,
         DateTimeImmutable $startDateTime,
-        DateTimeImmutable $currentDateTime = null
+        ?DateTimeImmutable $currentDateTime = null
     ): DateTimeImmutable {
         if ($currentDateTime === null) {
             sleep($timeoutConfig->getFirstRequestDelay());
-            return $startDateTime->modify(sprintf('+%s secomd', $timeoutConfig->getFirstRequestDelay()));
+            return $startDateTime->modify(sprintf('+%s seconds', $timeoutConfig->getFirstRequestDelay()));
         }
         $currentDateTime = $this->modify($currentDateTime, $timeoutConfig->getRequestInterval());
         if ($currentDateTime > $this->modify($startDateTime, $timeoutConfig->getTimeout())) {

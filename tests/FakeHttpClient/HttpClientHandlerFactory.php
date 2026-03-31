@@ -34,7 +34,7 @@ final class HttpClientHandlerFactory
                 implode('/', [$this->baseUrl, (ApiMethod::GET_BALANCE)->value]),
                 $this->createHandler(
                     new GetBalanceHandlerFactory(
-                        (string) $this->fieldValue['balance'] ?? ''
+                        (string) ($this->fieldValue['balance'] ?? '')
                     )
                 )
             )
@@ -54,7 +54,7 @@ final class HttpClientHandlerFactory
     }
 
     private function createHandler(HandlerFactoryInterface $handlerFactory): RequestHandlerInterface
-    {var_dump($handlerFactory);
+    {
         return
             HandlerBuilder::build(
                 [$handlerFactory, 'setRouteRule'],
@@ -92,10 +92,10 @@ final class HttpClientHandlerFactory
 
     public function createNewTaskResponse(ResponseInterface $response): ResponseInterface
     {
-        $response->withStatus(200);
-        $response->withBody(new Stream(json_encode(['errorId' => 0, 'balance' => 0])));
-
-        return $response;
+        return $response->withStatus(200)->withBody(new Stream(json_encode([
+            'errorId' => 0,
+            'taskId' => 7654321,
+        ])));
     }
 
     private function getTaskResultHandler(): RequestHandlerInterface
@@ -114,10 +114,13 @@ final class HttpClientHandlerFactory
 
     public function createGetTaskResultResponse(ResponseInterface $response): ResponseInterface
     {
-        $response->withStatus(200);
-        $response->withBody(new Stream(json_encode(['errorId' => 0, 'balance' => 0])));
-
-        return $response;
+        return $response->withStatus(200)->withBody(new Stream(json_encode([
+            'errorId' => 0,
+            'status' => 'ready',
+            'solution' => [
+                'gRecaptchaResponse' => 'fake-response-token',
+            ],
+        ])));
     }
 
     public function setRule(Rule $rule, ApiMethod $method): void

@@ -29,4 +29,9 @@ final class CreateTaskRequest extends AbstractRequest
     {
         return $this->callbackUrl;
     }
+
+    public function getMethod(): ApiMethod
+    {
+        return ApiMethod::CREATE_TASK;
+    }
 }

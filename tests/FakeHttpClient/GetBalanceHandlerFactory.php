@@ -21,16 +21,14 @@ final class GetBalanceHandlerFactory implements HandlerFactoryInterface
     {
         $rule->allOf(function (Rule $rule) {
             $rule->match('body', sprintf('"clientKey".+"%s"', AbstractTestCase::SECRET_KEY));
-            $rule->equal('uri.path', (ApiMethod::GET_BALANCE)->value);
+            $rule->equal('uri.path', '/' . (ApiMethod::GET_BALANCE)->value);
             $rule->equal('method', 'POST');
         });
     }
 
     public function getResponse(ResponseInterface $response): ResponseInterface
     {
-        $response->withStatus(200);
         if ($this->balance) {
-            var_dump(preg_match('~^99.*?~', $this->balance));
             if (preg_match('~^99.*?~', $this->balance)) {
 
                 return
@@ -52,13 +50,12 @@ final class GetBalanceHandlerFactory implements HandlerFactoryInterface
             }
         }
 
-        return
-            $response->withBody(
+        return $response->withStatus(200)->withBody(
                 new Stream(
                     json_encode(
                         [
                             'errorId' => 0,
-                            'balance' => $this->balance ?: rand(100000, 999999) / 100
+                            'balance' => $this->balance ?: 123.45
                         ]
                     )
                 )

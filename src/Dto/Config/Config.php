@@ -34,6 +34,13 @@ final class Config
     #[Serializer\Type('string')]
     private string $method;
 
+    /**
+     * @var array<string, string>
+     */
+    #[Serializer\SerializedName(name: 'headers')]
+    #[Serializer\Type('array')]
+    private array $headers = [];
+
     public function getTimeouts(): array
     {
         return $this->timeouts;
@@ -57,5 +64,13 @@ final class Config
     public function getMethodUrls(): array
     {
         return $this->methodUrls;
+    }
+
+    /**
+     * @return array<string, string>
+     */
+    public function getHeaders(): array
+    {
+        return $this->headers;
     }
 }

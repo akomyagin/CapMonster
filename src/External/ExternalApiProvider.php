@@ -6,19 +6,26 @@ namespace CapMonsterClient\External;
 
 use CapMonsterClient\ApiProvider\Request\Dto\CreateTaskRequest;
 use CapMonsterClient\ApiProvider\Request\Dto\GetBalanceRequest;
+use CapMonsterClient\ApiProvider\Request\Dto\GetTaskResultRequest;
 use CapMonsterClient\ApiProvider\Request\Factory\RequestFactory;
 use CapMonsterClient\ApiProvider\Request\Factory\RequestFactoryInterface;
 use CapMonsterClient\CapMonsterConfiguration;
 use CapMonsterClient\Common\Dto\Request\AbstractRequest;
 use CapMonsterClient\Common\Exception\CapMonsterException;
+use CapMonsterClient\Dto\Solution\AbstractSolution;
 use CapMonsterClient\Dto\Task\AbstractTask;
 use CapMonsterClient\Enum\ErrorType;
+use CapMonsterClient\Enum\TypeTask;
 use CapMonsterClient\External\Dto\Response\AbstractResponse;
 use CapMonsterClient\External\Dto\Response\CreateTaskResponse;
 use CapMonsterClient\External\Dto\Response\GetBalanceResponse;
+use CapMonsterClient\External\Dto\Response\GetTaskResultResponse;
 use CapMonsterClient\External\Transformer\FromJsonTransformer;
 use CapMonsterClient\Resolver\ErrorResolver;
+use CapMonsterClient\Resolver\TypeSolutionResolver;
 use CapMonsterClient\Serializer\Builder\SerializerBuilder;
+use Exception;
+use JMS\Serializer\Exception\RuntimeException;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -45,12 +52,9 @@ class ExternalApiProvider
     {
         $request = new GetBalanceRequest($this->configuration->getClientKey());
         $response = $this->sendRequest($request);
+        $this->assertSuccessfulResponse($response);
         /** @var GetBalanceResponse $dtoResponse */
-        $dtoResponse =
-            (new FromJsonTransformer(
-                $this->serializerBuilder,
-                GetBalanceResponse::class
-            ))->transform((string) $response->getBody());
+        $dtoResponse = $this->deserializeResponse((string) $response->getBody(), GetBalanceResponse::class);
         $this->checkErrorResponse($dtoResponse);
 
         return $dtoResponse->getBalance();
@@ -67,20 +71,43 @@ class ExternalApiProvider
             $this->configuration->getCallbackUrl()
         );
         $response = $this->sendRequest($request);
+        $this->assertSuccessfulResponse($response);
         /** @var CreateTaskResponse $dtoResponse */
-        $dtoResponse =
-            (new FromJsonTransformer(
-                $this->serializerBuilder,
-                CreateTaskResponse::class
-            ))->transform((string) $response->getBody());
+        $dtoResponse = $this->deserializeResponse((string) $response->getBody(), CreateTaskResponse::class);
         $this->checkErrorResponse($dtoResponse);
 
         return $dtoResponse;
     }
 
-    public function getResultTask()
+    /**
+     * @throws CapMonsterException
+     */
+    public function getResultTask(AbstractTask $task): GetTaskResultResponse
     {
+        $request = new GetTaskResultRequest(
+            $this->configuration->getClientKey(),
+            $task
+        );
+        $response = $this->sendRequest($request);
+        $this->assertSuccessfulResponse($response);
+        /** @var GetTaskResultResponse $dtoResponse */
+        $dtoResponse = $this->deserializeResponse((string) $response->getBody(), GetTaskResultResponse::class);
+        $this->checkErrorResponse($dtoResponse);
 
+        return $dtoResponse;
+    }
+
+    /**
+     * @throws CapMonsterException
+     */
+    public function extractTaskSolution(TypeTask $typeTask, GetTaskResultResponse $response): AbstractSolution
+    {
+        $className = (new TypeSolutionResolver())->resolve($typeTask);
+        try {
+            return $this->serializerBuilder->build()->fromArray($response->getSolution(), $className);
+        } catch (RuntimeException $exception) {
+            throw new CapMonsterException(ErrorType::RESPONSE_ERROR, $exception);
+        }
     }
 
     /**
@@ -100,11 +127,37 @@ class ExternalApiProvider
     /**
      * @throws CapMonsterException
      */
+    private function assertSuccessfulResponse(ResponseInterface $response): void
+    {
+        $code = $response->getStatusCode();
+        if (!preg_match('~^2\d+~', (string) $code)) {
+            throw new CapMonsterException(
+                ErrorType::RESPONSE_CODE_ERROR,
+                new Exception((string) $response->getBody(), $code)
+            );
+        }
+    }
+
+    /**
+     * @throws CapMonsterException
+     */
     private function checkErrorResponse(AbstractResponse $response): void
     {
         if ($response->isError()) {
             $error = ErrorResolver::resolve($response);
             throw $error ? new CapMonsterException($error) : new CapMonsterException(ErrorType::UNKNOWN_ERROR);
+        }
+    }
+
+    /**
+     * @throws CapMonsterException
+     */
+    private function deserializeResponse(string $content, string $className): object
+    {
+        try {
+            return (new FromJsonTransformer($this->serializerBuilder, $className))->transform($content);
+        } catch (RuntimeException $exception) {
+            throw new CapMonsterException(ErrorType::RESPONSE_ERROR, $exception);
         }
     }
 }

@@ -22,4 +22,9 @@ final class GetTaskResultRequest extends AbstractRequest
     {
         return $this->task->getTaskId();
     }
+
+    public function getMethod(): ApiMethod
+    {
+        return ApiMethod::GET_TASK_RESULT;
+    }
 }

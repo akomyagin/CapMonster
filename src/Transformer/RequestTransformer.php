@@ -12,6 +12,11 @@ use CapMonsterClient\Serializer\Builder\SerializerBuilder;
 
 final class RequestTransformer
 {
+    private const TASK_TYPE_ALIASES = [
+        'NoCaptchaTask' => 'RecaptchaV2Task',
+        'NoCaptchaTaskProxyless' => 'RecaptchaV2TaskProxyless',
+    ];
+
     private SerializerBuilder $serializerBuilder;
 
     public function __construct(SerializerBuilder $serializerBuilder)
@@ -32,6 +37,9 @@ final class RequestTransformer
                 /** @var CreateTaskRequest $request */
                 $task = $request->getTask();
                 $arrayRequest['task'] = $serializer->toArray($task);
+                if (isset($arrayRequest['task']['type'], self::TASK_TYPE_ALIASES[$arrayRequest['task']['type']])) {
+                    $arrayRequest['task']['type'] = self::TASK_TYPE_ALIASES[$arrayRequest['task']['type']];
+                }
                 if (!empty($request->getCallbackUrl())) {
                     $arrayRequest['callbackUrl'] = $request->getCallbackUrl();
                 }
