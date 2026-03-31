@@ -6,7 +6,7 @@ namespace CapMonsterClient\Dto\Task;
 
 use CapMonsterClient\Enum\TypeTask;
 
-final class FunCaptchaTask extends AbstractFunCaptchaTask
+final class FunCaptchaTask extends AbstractTask
 {
     /*
      *
@@ -32,27 +32,6 @@ final class FunCaptchaTask extends AbstractFunCaptchaTask
      * Используйте это свойство для передачи параметра blob в виде массива, сведенного в строку. Пример:
      * {"\blob\":\"HERE_COMES_THE_blob_VALUE\"}
      *
-     * параметр proxyType тип String обязательно
-     * http - обычный http/https прокси
-     * https - попробуйте эту опцию только если "http" не работает (требуется для некоторых кастомных прокси)
-     * socks4 - socks4 прокси
-     * socks5 - socks5 прокси
-     *
-     * параметр proxyAddress тип String обязательно
-     * IP адрес прокси IPv4/IPv6. Не допускается:
-     *     использование имен хостов
-     *     использование прозрачных прокси (там где можно видеть IP клиента)
-     *     использование прокси на локальных машинах
-     *
-     * параметр proxyPort тип Integer обязательно
-     * Порт прокси
-     *
-     * параметр proxyLogin тип String не обязательно
-     * Логин прокси-сервера
-     *
-     * параметр proxyPassword тип String не обязательно
-     * Пароль прокси-сервера
-     *
      * параметр userAgent тип String не обязательно
      * User-Agent браузера, используемый в эмуляции. Необходимо использовать подпись современного браузера,
      * иначе Google будет возвращать ошибку, требуя обновить браузер.
@@ -62,22 +41,33 @@ final class FunCaptchaTask extends AbstractFunCaptchaTask
      * Формат: cookiename1=cookievalue1; cookiename2=cookievalue2
      */
 
-    use ProxyTrait;
-
     public function __construct(
         string $websiteUrl,
-        string $websitePublicKey,
-        string $proxyType,
-        string $proxyAddress,
-        int $proxyPort,
-        ?string $proxyLogin = null,
-        ?string $proxyPassword = null,
-        ?string $funCaptchaApiJsSubdomain = null,
-        ?string $data = null,
+        private readonly string $websitePublicKey,
+        private readonly ?string $funCaptchaApiJsSubdomain = null,
+        private readonly ?string $data = null,
         ?string $userAgent = null,
-        ?string $cookies = null
+        ?string $cookies = null,
+        ?ProxySetting $proxySetting = null
     ) {
-        parent::__construct($websiteUrl, $websitePublicKey, $funCaptchaApiJsSubdomain, $data, $userAgent, $cookies);
-        $this->proxyTraitInit($proxyType, $proxyAddress, $proxyPort, $proxyLogin, $proxyPassword);
+        parent::__construct(
+            ($proxySetting === null) ? TypeTask::FUN_CAPTCHA_TASK_PROXYLESS : TypeTask::FUN_CAPTCHA_TASK,
+            $websiteUrl, $websitePublicKey, $userAgent, $cookies, $proxySetting
+        );
+    }
+
+    public function getWebsitePublicKey(): string
+    {
+        return $this->websitePublicKey;
+    }
+
+    public function getFunCaptchaApiJsSubdomain(): ?string
+    {
+        return $this->funCaptchaApiJsSubdomain;
+    }
+
+    public function getData(): ?string
+    {
+        return $this->data;
     }
 }

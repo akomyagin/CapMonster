@@ -1,0 +1,131 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Tests\FakeHttpClient;
+
+use CapMonsterClient\Enum\ApiMethod;
+use Psr\Http\Message\ResponseInterface;
+use Tests\Unit\AbstractTestCase;
+use Webclient\Fake\Handler\SimpleRoutingHandler\SimpleRoutingHandler;
+use Psr\Http\Server\RequestHandlerInterface;
+use Webclient\Fake\Handler\SpecHandler\Rule;
+use Webclient\Fake\Message\Stream;
+
+final class HttpClientHandlerFactory
+{
+    public function __construct(
+        private readonly string $baseUrl,
+        private readonly array $fieldValue = []
+    ) {
+    }
+
+    public function create(): RequestHandlerInterface
+    {
+        $handler = new SimpleRoutingHandler(
+            HandlerBuilder::build(
+                [$this, 'createNotFoundHandler'],
+                [$this, 'createResponseNotFound']
+            )
+        );
+        $handler
+            ->route(
+                ['POST'],
+                implode('/', [$this->baseUrl, (ApiMethod::GET_BALANCE)->value]),
+                $this->createHandler(
+                    new GetBalanceHandlerFactory(
+                        (string) $this->fieldValue['balance'] ?? ''
+                    )
+                )
+            )
+            ->route(
+                ['POST'],
+                implode('/', [$this->baseUrl, (ApiMethod::CREATE_TASK)->value]),
+                $this->createTaskHandler()
+            )
+            ->route(
+                ['POST'],
+                implode('/', [$this->baseUrl, (ApiMethod::GET_TASK_RESULT)->value]),
+                $this->getTaskResultHandler()
+            )
+        ;
+
+        return $handler;
+    }
+
+    private function createHandler(HandlerFactoryInterface $handlerFactory): RequestHandlerInterface
+    {var_dump($handlerFactory);
+        return
+            HandlerBuilder::build(
+                [$handlerFactory, 'setRouteRule'],
+                [$handlerFactory, 'getResponse']
+            );
+    }
+
+    private function getUrl(ApiMethod $method): string
+    {
+        return '/' . $method->value;
+    }
+
+    public function createNotFoundHandler(Rule $rule): void
+    {
+    }
+
+    public function createResponseNotFound(ResponseInterface $response): ResponseInterface
+    {
+        return $response->withStatus(404);
+    }
+
+    private function createTaskHandler(): RequestHandlerInterface
+    {
+        return
+            HandlerBuilder::build(
+                [$this, 'createNewTaskHandler'],
+                [$this, 'createNewTaskResponse']
+            );
+    }
+
+    public function createNewTaskHandler(Rule $rule): void
+    {
+        $this->setRule($rule, ApiMethod::CREATE_TASK);
+    }
+
+    public function createNewTaskResponse(ResponseInterface $response): ResponseInterface
+    {
+        $response->withStatus(200);
+        $response->withBody(new Stream(json_encode(['errorId' => 0, 'balance' => 0])));
+
+        return $response;
+    }
+
+    private function getTaskResultHandler(): RequestHandlerInterface
+    {
+        return
+            HandlerBuilder::build(
+                [$this, 'createGetTaskResultHandler'],
+                [$this, 'createGetTaskResultResponse']
+            );
+    }
+
+    public function createGetTaskResultHandler(Rule $rule): void
+    {
+        $this->setRule($rule, ApiMethod::GET_TASK_RESULT);
+    }
+
+    public function createGetTaskResultResponse(ResponseInterface $response): ResponseInterface
+    {
+        $response->withStatus(200);
+        $response->withBody(new Stream(json_encode(['errorId' => 0, 'balance' => 0])));
+
+        return $response;
+    }
+
+    public function setRule(Rule $rule, ApiMethod $method): void
+    {
+        $rule->allOf(function (Rule $rule) use ($method) {
+            $rule->match('body', sprintf('"clientKey".+"%s"', AbstractTestCase::SECRET_KEY));
+            $rule->equal('uri.path', $this->getUrl($method));
+            $rule->equal('method', 'POST');
+        });
+    }
+}

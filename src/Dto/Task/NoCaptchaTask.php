@@ -6,7 +6,7 @@ namespace CapMonsterClient\Dto\Task;
 
 use CapMonsterClient\Enum\TypeTask;
 
-final class NoCaptchaTask extends AbstractNoCaptchaTask
+final class NoCaptchaTask extends AbstractTask
 {
     /*
      * решение каптчи Google
@@ -26,27 +26,6 @@ final class NoCaptchaTask extends AbstractNoCaptchaTask
      * который является одноразовым токеном и должен собираться каждый раз при решении ReCaptcha2.
      * <div class="g-recaptcha" data-sitekey="some sitekey" data-s="ВОТ_ЭТОТ"></div>
      *
-     * параметр proxyType тип String обязательно
-     * http - обычный http/https прокси
-     * https - попробуйте эту опцию только если "http" не работает (требуется для некоторых кастомных прокси)
-     * socks4 - socks4 прокси
-     * socks5 - socks5 прокси
-     *
-     * параметр proxyAddress тип String обязательно
-     * IP адрес прокси IPv4/IPv6. Не допускается:
-     *     использование имен хостов
-     *     использование прозрачных прокси (там где можно видеть IP клиента)
-     *     использование прокси на локальных машинах
-     *
-     * параметр proxyPort тип Integer обязательно
-     * Порт прокси
-     *
-     * параметр proxyLogin тип String не обязательно
-     * Логин прокси-сервера
-     *
-     * параметр proxyPassword тип String не обязательно
-     * Пароль прокси-сервера
-     *
      * параметр userAgent тип String не обязательно
      * User-Agent браузера, используемый в эмуляции. Необходимо использовать подпись современного браузера,
      * иначе Google будет возвращать ошибку, требуя обновить браузер.
@@ -56,21 +35,22 @@ final class NoCaptchaTask extends AbstractNoCaptchaTask
      * Формат: cookiename1=cookievalue1; cookiename2=cookievalue2
      */
 
-    use ProxyTrait;
-
     public function __construct(
         string $websiteUrl,
         string $websiteKey,
-        string $proxyType,
-        string $proxyAddress,
-        int $proxyPort,
-        ?string $proxyLogin = null,
-        ?string $proxyPassword = null,
-        ?string $recaptchaDataSValue = null,
+        private readonly ?string $recaptchaDataSValue = null,
         ?string $userAgent = null,
-        ?string $cookies = null
+        ?string $cookies = null,
+        ?ProxySetting $proxySetting = null
     ) {
-        parent::__construct($websiteUrl, $websiteKey, $recaptchaDataSValue, $userAgent, $cookies);
-        $this->proxyTraitInit($proxyType, $proxyAddress, $proxyPort, $proxyLogin, $proxyPassword);
+        parent::__construct(
+            ($proxySetting === null) ? TypeTask::NO_CAPTCHA_TASK_PROXYLESS : TypeTask::NO_CAPTCHA_TASK,
+            $websiteUrl, $websiteKey, $userAgent, $cookies, $proxySetting
+        );
+    }
+
+    public function getRecaptchaDataSValue(): ?string
+    {
+        return $this->recaptchaDataSValue;
     }
 }

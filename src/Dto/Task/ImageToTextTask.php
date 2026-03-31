@@ -42,7 +42,7 @@ final class ImageToTextTask extends AbstractTask
         private readonly ?int $numeric = null,
         private readonly ?bool $math = null
     ) {
-        parent::__construct(TypeTask::IMAGE_TO_TEXT_TASK);
+        parent::__construct(TypeTask::IMAGE_TO_TEXT_TASK, '', '');
     }
 
     public function getBody(): string

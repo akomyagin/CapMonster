@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace CapMonsterClient\Enum;
 
-use CapMonsterClient\LibException\EnumResolverException;
+use CapMonsterClient\Common\Exception\EnumResolverException;
 use CapMonsterClient\Resolver\StatusTaskResolverInterface;
 
 enum StatusTask: string implements EnumDescriptionInterface, StatusTaskResolverInterface

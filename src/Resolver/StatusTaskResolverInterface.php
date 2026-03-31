@@ -4,8 +4,8 @@ declare(strict_types=1);
 
 namespace CapMonsterClient\Resolver;
 
+use CapMonsterClient\Common\Exception\EnumResolverException;
 use CapMonsterClient\Enum\StatusTask;
-use CapMonsterClient\LibException\EnumResolverException;
 
 interface StatusTaskResolverInterface
 {

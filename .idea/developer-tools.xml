@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="DeveloperToolsToolWindowSettingsV1" lastSelectedContentNodeId="text-statistic">
+    <developerToolsConfigurations>
+      <developerToolConfiguration developerToolId="text-statistic" id="ea1bcbdc-0801-4d3b-9803-ad93ec4b20e7" name="Workbench">
+        <properties>
+          <property key="text" type="INPUT" value="kotlin.String|&lt;?php&#10;&#10;declare(strict_types=1);&#10;&#10;namespace CapMonsterClient\External\Dto\Response;&#10;&#10;use CapMonsterClient\Enum\StatusTask;&#10;use JMS\Serializer\Annotation as Serializer;&#10;&#10;final class GetTaskResultResponse extends AbstractResponse&#10;{&#10;    public function __construct(&#10;        #[Serializer\SerializedName(name: 'status')]&#10;        #[Serializer\Type(name: 'enum&lt;&quot;CapMonsterClient\Enum\StatusTask&quot;&gt;')]&#10;        private readonly StatusTask $status,&#10;    ) {&#10;    }&#10;&#10;    public function getStatus(): StatusTask&#10;    {&#10;        return $this-&gt;status;&#10;    }&#10;}" />
+        </properties>
+      </developerToolConfiguration>
+    </developerToolsConfigurations>
+  </component>
+</project>

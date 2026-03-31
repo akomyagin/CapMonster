@@ -31,8 +31,6 @@ final class RecaptchaV3TaskProxyless extends AbstractTask
      * grecaptcha.execute('site_key', {action:'login_test'}).
      */
 
-    use ReCaptchaWebTrait;
-
     public function __construct(
         string $websiteUrl,
         string $websiteKey,
@@ -40,8 +38,7 @@ final class RecaptchaV3TaskProxyless extends AbstractTask
         private readonly ?string $pageAction = null,
     )
     {
-        parent::__construct(TypeTask::RECAPTCHA_V3_TASK_PROXYLESS);
-        $this->webTraitInit($websiteUrl, $websiteKey);
+        parent::__construct(TypeTask::RECAPTCHA_V3_TASK_PROXYLESS, $websiteUrl, $websiteKey);
     }
 
     public function getMinScore(): ?float

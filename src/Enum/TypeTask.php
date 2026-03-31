@@ -25,4 +25,12 @@ enum TypeTask: string
     case H_CAPTCHA_TASK = 'HCaptchaTask';
 
     case H_CAPTCHA_TASK_PROXYLESS = 'HCaptchaTaskProxyless';
+
+    case GEE_TEST_TASK = 'GeeTestTask';
+
+    case GEE_TEST_TASK_PROXYLESS = 'GeeTestTaskProxyless';
+
+    case TURNSTILE_TASK = 'TurnstileTask';
+
+    case TURNSTILE_TASK_PROXYLESS = 'TurnstileTaskProxyless';
 }
