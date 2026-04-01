@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CapMonsterClient\External\Transformer;
+namespace CapMonsterClient\ApiProvider\Transformer;
 
 use CapMonsterClient\Serializer\Builder\SerializerBuilder;
 use JMS\Serializer\DeserializationContext;

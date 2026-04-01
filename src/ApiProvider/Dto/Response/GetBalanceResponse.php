@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace CapMonsterClient\External\Dto\Response;
+namespace CapMonsterClient\ApiProvider\Dto\Response;
 
 use JMS\Serializer\Annotation as Serializer;
 

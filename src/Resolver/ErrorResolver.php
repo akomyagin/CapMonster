@@ -5,7 +5,7 @@ declare(strict_types=1);
 namespace CapMonsterClient\Resolver;
 
 use CapMonsterClient\Enum\ErrorType;
-use CapMonsterClient\External\Dto\Response\AbstractResponse;
+use CapMonsterClient\ApiProvider\Dto\Response\AbstractResponse;
 
 final class ErrorResolver
 {

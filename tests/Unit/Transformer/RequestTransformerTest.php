@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Tests\Unit\Transformer;
 
 use CapMonsterClient\ApiProvider\Request\Dto\CreateTaskRequest;
+use CapMonsterClient\ApiProvider\Request\Dto\GetBalanceRequest;
+use CapMonsterClient\ApiProvider\Request\Dto\GetTaskResultRequest;
 use CapMonsterClient\Dto\Task\NoCaptchaTask;
 use CapMonsterClient\Serializer\Builder\SerializerBuilder;
 use CapMonsterClient\Transformer\RequestTransformer;
@@ -21,5 +23,44 @@ final class RequestTransformerTest extends TestCase
         $payload = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
 
         $this->assertSame('RecaptchaV2TaskProxyless', $payload['task']['type']);
+    }
+
+    public function testGetBalancePayloadContainsOnlyClientKey(): void
+    {
+        $json = (new RequestTransformer(new SerializerBuilder()))->transform(
+            new GetBalanceRequest('API_KEY')
+        );
+        $payload = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame(['clientKey' => 'API_KEY'], $payload);
+    }
+
+    public function testGetTaskResultPayloadMatchesApiDocumentation(): void
+    {
+        $task = new NoCaptchaTask('https://example.com', 'site-key');
+        $task->setTaskId(7654321);
+
+        $json = (new RequestTransformer(new SerializerBuilder()))->transform(
+            new GetTaskResultRequest('API_KEY', $task)
+        );
+        $payload = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame('API_KEY', $payload['clientKey']);
+        $this->assertSame(7654321, $payload['taskId']);
+    }
+
+    public function testCreateTaskIncludesCallbackUrlWhenProvided(): void
+    {
+        $task = new NoCaptchaTask('https://example.com', 'site-key');
+        $request = new CreateTaskRequest(
+            'API_KEY',
+            $task,
+            'https://yourwebsite.com/callback'
+        );
+
+        $json = (new RequestTransformer(new SerializerBuilder()))->transform($request);
+        $payload = json_decode($json, true, 512, JSON_THROW_ON_ERROR);
+
+        $this->assertSame('https://yourwebsite.com/callback', $payload['callbackUrl']);
     }
 }

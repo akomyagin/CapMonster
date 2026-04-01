@@ -12,7 +12,7 @@ use CapMonsterClient\Dto\Task\AbstractTask;
 use CapMonsterClient\Enum\ErrorType;
 use CapMonsterClient\Enum\StatusTask;
 use CapMonsterClient\Enum\TypeTask;
-use CapMonsterClient\External\ExternalApiProvider;
+use CapMonsterClient\ApiProvider\ApiClient;
 use CapMonsterClient\Resolver\TimeoutChecker;
 use DateTimeImmutable;
 use Psr\Http\Client\ClientInterface;
@@ -21,13 +21,13 @@ final class CapMonsterClient implements CapMonsterClientInterface
 {
     private const MAX_GET_TASK_RESULT_ATTEMPTS = 120;
 
-    private readonly ExternalApiProvider $apiProvider;
+    private readonly ApiClient $apiProvider;
 
     public function __construct(
         private readonly ClientInterface $psrHttpClient,
         private readonly CapMonsterConfiguration $configuration
     ) {
-        $this->apiProvider = new ExternalApiProvider($this->psrHttpClient, $this->configuration);
+        $this->apiProvider = new ApiClient($this->psrHttpClient, $this->configuration);
     }
 
     /**

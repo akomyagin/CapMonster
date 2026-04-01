@@ -100,6 +100,25 @@ final class HttpClientHandlerFactory
 
     private function getTaskResultHandler(): RequestHandlerInterface
     {
+        $sequence = $this->fieldValue['getTaskResultSequence'] ?? null;
+        if (is_array($sequence) && $sequence !== []) {
+            $counter = 0;
+
+            return HandlerBuilder::build(
+                [$this, 'createGetTaskResultHandler'],
+                function (ResponseInterface $response) use (&$counter, $sequence): ResponseInterface {
+                    $idx = min($counter, count($sequence) - 1);
+                    $payload = $sequence[$idx];
+                    if ($counter < count($sequence) - 1) {
+                        ++$counter;
+                    }
+                    $body = is_string($payload) ? $payload : json_encode($payload, JSON_THROW_ON_ERROR);
+
+                    return $response->withStatus(200)->withBody(new Stream($body));
+                }
+            );
+        }
+
         return
             HandlerBuilder::build(
                 [$this, 'createGetTaskResultHandler'],

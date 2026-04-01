@@ -2,13 +2,18 @@
 
 declare(strict_types=1);
 
-namespace CapMonsterClient\External;
+namespace CapMonsterClient\ApiProvider;
 
+use CapMonsterClient\ApiProvider\Dto\Response\AbstractResponse;
+use CapMonsterClient\ApiProvider\Dto\Response\CreateTaskResponse;
+use CapMonsterClient\ApiProvider\Dto\Response\GetBalanceResponse;
+use CapMonsterClient\ApiProvider\Dto\Response\GetTaskResultResponse;
 use CapMonsterClient\ApiProvider\Request\Dto\CreateTaskRequest;
 use CapMonsterClient\ApiProvider\Request\Dto\GetBalanceRequest;
 use CapMonsterClient\ApiProvider\Request\Dto\GetTaskResultRequest;
 use CapMonsterClient\ApiProvider\Request\Factory\RequestFactory;
 use CapMonsterClient\ApiProvider\Request\Factory\RequestFactoryInterface;
+use CapMonsterClient\ApiProvider\Transformer\FromJsonTransformer;
 use CapMonsterClient\CapMonsterConfiguration;
 use CapMonsterClient\Common\Dto\Request\AbstractRequest;
 use CapMonsterClient\Common\Exception\CapMonsterException;
@@ -16,11 +21,6 @@ use CapMonsterClient\Dto\Solution\AbstractSolution;
 use CapMonsterClient\Dto\Task\AbstractTask;
 use CapMonsterClient\Enum\ErrorType;
 use CapMonsterClient\Enum\TypeTask;
-use CapMonsterClient\External\Dto\Response\AbstractResponse;
-use CapMonsterClient\External\Dto\Response\CreateTaskResponse;
-use CapMonsterClient\External\Dto\Response\GetBalanceResponse;
-use CapMonsterClient\External\Dto\Response\GetTaskResultResponse;
-use CapMonsterClient\External\Transformer\FromJsonTransformer;
 use CapMonsterClient\Resolver\ErrorResolver;
 use CapMonsterClient\Resolver\TypeSolutionResolver;
 use CapMonsterClient\Serializer\Builder\SerializerBuilder;
@@ -30,7 +30,7 @@ use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\ResponseInterface;
 
-class ExternalApiProvider
+final class ApiClient
 {
     private readonly SerializerBuilder $serializerBuilder;
 
