@@ -19,4 +19,9 @@ interface CapMonsterClientInterface
      * @throws CapMonsterException
      */
     public function runTask(AbstractTask $task): AbstractSolution;
+
+    /**
+     * @throws CapMonsterException
+     */
+    public function getActualUserAgent(): string;
 }

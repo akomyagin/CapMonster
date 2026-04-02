@@ -48,7 +48,17 @@ enum ErrorType: string implements EnumDescriptionInterface
 
     case THE_PROXY_IP_IS_BANNED = 'ERROR_PROXY_BANNED';
 
+    case PROXY_MISSING = 'ERROR_PROXY_MISSING';
+
+    case PROXY_NOT_AUTHORISED = 'ERROR_PROXY_NOT_AUTHORISED';
+
+    case PROXY_READ_TIMEOUT = 'ERROR_PROXY_READ_TIMEOUT';
+
     case INCORRECT_TASK_TYPE = 'ERROR_TASK_NOT_SUPPORTED';
+
+    case TASK_ABSENT = 'ERROR_TASK_ABSENT';
+
+    case WRONG_USERAGENT = 'ERROR_WRONG_USERAGENT';
 
     case INVALID_ARGUMENT_EXCEPTION = 'ERROR_ARGUMENT_INVALID_EXCEPTION';
 
@@ -87,7 +97,12 @@ enum ErrorType: string implements EnumDescriptionInterface
             ErrorType::YOUR_IP_IS_BLOCKED => 'Доступ к API с этого IP запрещен из-за большого количества ошибок.',
             ErrorType::FAILED_TO_CONNECT_PROXY => 'Не удалось подключиться к прокси-серверу, таймаут соединения. ',
             ErrorType::THE_PROXY_IP_IS_BANNED => 'IP прокси забанен на целевом сервисе капчи. ',
+            ErrorType::PROXY_MISSING => 'Параметры прокси отсутствуют или указаны не полностью. ',
+            ErrorType::PROXY_NOT_AUTHORISED => 'Неверные данные авторизации прокси. ',
+            ErrorType::PROXY_READ_TIMEOUT => 'Таймаут чтения при работе с прокси. ',
             ErrorType::INCORRECT_TASK_TYPE => 'Тип задачи не поддерживается или указан неверно. Проверьте свойство «type» в объекте задачи. ',
+            ErrorType::TASK_ABSENT => 'Объект task отсутствует в запросе createTask или JSON невалидный. ',
+            ErrorType::WRONG_USERAGENT => 'Указан невалидный User-Agent. Получите актуальный User-Agent и повторите запрос. ',
             ErrorType::INVALID_ARGUMENT_EXCEPTION => 'Получен неверный аргумент.',
             ErrorType::SEND_MESSAGE_ERROR => 'Ошибка при отправке запроса к сервису.',
             ErrorType::TYPE_TASK_RESOLVE_EXCEPTION => 'Неподдерживаемый тип задачи.',

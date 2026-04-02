@@ -52,6 +52,14 @@ final class CapMonsterClient implements CapMonsterClientInterface
     /**
      * @throws CapMonsterException
      */
+    public function getActualUserAgent(): string
+    {
+        return $this->apiProvider->getActualUserAgent();
+    }
+
+    /**
+     * @throws CapMonsterException
+     */
     private function getTaskSolution(AbstractTask $task): AbstractSolution
     {
         $timeout = $this->tryToGetTimeout($task->getType());

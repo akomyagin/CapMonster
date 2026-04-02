@@ -38,6 +38,16 @@ final class ProxySetting
     ) {
     }
 
+    public static function create(
+        string $proxyType,
+        string $proxyAddress,
+        int $proxyPort,
+        ?string $proxyLogin = null,
+        ?string $proxyPassword = null
+    ): self {
+        return new self($proxyType, $proxyAddress, $proxyPort, $proxyLogin, $proxyPassword);
+    }
+
     public function getProxyType(): string
     {
         return $this->proxyType;

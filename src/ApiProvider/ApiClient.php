@@ -15,6 +15,7 @@ use CapMonsterClient\ApiProvider\Request\Factory\RequestFactory;
 use CapMonsterClient\ApiProvider\Request\Factory\RequestFactoryInterface;
 use CapMonsterClient\ApiProvider\Transformer\FromJsonTransformer;
 use CapMonsterClient\CapMonsterConfiguration;
+use CapMonsterClient\Common\Exception\ExceptionFactory;
 use CapMonsterClient\Common\Dto\Request\AbstractRequest;
 use CapMonsterClient\Common\Exception\CapMonsterException;
 use CapMonsterClient\Dto\Solution\AbstractSolution;
@@ -26,6 +27,8 @@ use CapMonsterClient\Resolver\TypeSolutionResolver;
 use CapMonsterClient\Serializer\Builder\SerializerBuilder;
 use Exception;
 use JMS\Serializer\Exception\RuntimeException;
+use Laminas\Diactoros\Request;
+use Laminas\Diactoros\Stream;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -111,6 +114,29 @@ final class ApiClient
     }
 
     /**
+     * Returns the currently recommended browser User-Agent from CapMonster.
+     *
+     * @throws CapMonsterException
+     */
+    public function getActualUserAgent(): string
+    {
+        $handle = fopen('php://temp', 'wb+');
+        $request = new Request('https://capmonster.cloud/api/useragent/actual', 'GET', new Stream($handle));
+        try {
+            $response = $this->psrHttpClient->sendRequest($request);
+        } catch (ClientExceptionInterface $exception) {
+            throw ExceptionFactory::fromErrorType(ErrorType::SEND_MESSAGE_ERROR, $exception);
+        }
+        $this->assertSuccessfulResponse($response);
+        $userAgent = trim((string) $response->getBody());
+        if ($userAgent === '') {
+            throw ExceptionFactory::fromErrorType(ErrorType::RESPONSE_ERROR);
+        }
+
+        return $userAgent;
+    }
+
+    /**
      * @throws CapMonsterException
      */
     private function sendRequest(AbstractRequest $dtoRequest): ResponseInterface
@@ -120,7 +146,7 @@ final class ApiClient
                 $this->requestFactory->create($dtoRequest)
             );
         } catch (ClientExceptionInterface $exception) {
-            throw new CapMonsterException(ErrorType::SEND_MESSAGE_ERROR, $exception);
+            throw ExceptionFactory::fromErrorType(ErrorType::SEND_MESSAGE_ERROR, $exception);
         }
     }
 
@@ -131,7 +157,7 @@ final class ApiClient
     {
         $code = $response->getStatusCode();
         if (!preg_match('~^2\d+~', (string) $code)) {
-            throw new CapMonsterException(
+            throw ExceptionFactory::fromErrorType(
                 ErrorType::RESPONSE_CODE_ERROR,
                 new Exception((string) $response->getBody(), $code)
             );
@@ -145,7 +171,7 @@ final class ApiClient
     {
         if ($response->isError()) {
             $error = ErrorResolver::resolve($response);
-            throw $error ? new CapMonsterException($error) : new CapMonsterException(ErrorType::UNKNOWN_ERROR);
+            throw ExceptionFactory::fromErrorType($error ?? ErrorType::UNKNOWN_ERROR);
         }
     }
 
@@ -157,7 +183,7 @@ final class ApiClient
         try {
             return (new FromJsonTransformer($this->serializerBuilder, $className))->transform($content);
         } catch (RuntimeException $exception) {
-            throw new CapMonsterException(ErrorType::RESPONSE_ERROR, $exception);
+            throw ExceptionFactory::fromErrorType(ErrorType::RESPONSE_ERROR, $exception);
         }
     }
 }

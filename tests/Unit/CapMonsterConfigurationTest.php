@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Tests\Unit;
 
 use CapMonsterClient\CapMonsterConfiguration;
-use CapMonsterClient\Common\Exception\EnumResolverException;
 use CapMonsterClient\Enum\TypeTask;
 
 final class CapMonsterConfigurationTest extends AbstractTestCase
@@ -46,20 +45,15 @@ final class CapMonsterConfigurationTest extends AbstractTestCase
         $this->assertSame(120, $timeout->getTimeout());
     }
 
-    public function testGetTimeoutConfigThrowsWhenTaskTypeNotConfigured(): void
+    public function testDefaultTimeoutExistsForEveryTaskType(): void
     {
-        $configuration = new CapMonsterConfiguration(self::SECRET_KEY, [
-            'timeouts' => [
-                [
-                    'taskType' => TypeTask::NO_CAPTCHA_TASK_PROXYLESS,
-                    'firstRequestDelay' => 0,
-                    'requestInterval' => 0,
-                    'timeout' => 10,
-                ],
-            ],
-        ]);
+        $configuration = new CapMonsterConfiguration(self::SECRET_KEY);
 
-        $this->expectException(EnumResolverException::class);
-        $configuration->getTimeoutConfig(TypeTask::IMAGE_TO_TEXT_TASK);
+        foreach (TypeTask::cases() as $typeTask) {
+            $timeout = $configuration->getTimeoutConfig($typeTask);
+            $this->assertGreaterThanOrEqual(0, $timeout->getFirstRequestDelay());
+            $this->assertGreaterThanOrEqual(1, $timeout->getRequestInterval());
+            $this->assertGreaterThan(0, $timeout->getTimeout());
+        }
     }
 }

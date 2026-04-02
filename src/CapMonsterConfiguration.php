@@ -23,26 +23,9 @@ final class CapMonsterConfiguration
         ],
     ];
 
-    private const DEFAULT_TIMEOUTS = [
-        [
-            'taskType' => TypeTask::FUN_CAPTCHA_TASK,
-            'firstRequestDelay' => 1,
-            'requestInterval' => 1,
-            'timeout' => 10,
-        ],
-        [
-            'taskType' => TypeTask::FUN_CAPTCHA_TASK_PROXYLESS,
-            'firstRequestDelay' => 1,
-            'requestInterval' => 1,
-            'timeout' => 10,
-        ],
-        [
-            'taskType' => TypeTask::NO_CAPTCHA_TASK,
-            'firstRequestDelay' => 1,
-            'requestInterval' => 1,
-            'timeout' => 10,
-        ],
-    ];
+    private const DEFAULT_FIRST_REQUEST_DELAY = 2;
+    private const DEFAULT_REQUEST_INTERVAL = 2;
+    private const DEFAULT_TIMEOUT = 120;
 
     private Config $config;
 
@@ -110,7 +93,7 @@ final class CapMonsterConfiguration
     private function mergeTimeouts(array $customTimeouts): array
     {
         $timeouts = [];
-        foreach (self::DEFAULT_TIMEOUTS as $timeout) {
+        foreach (self::buildDefaultTimeouts() as $timeout) {
             $timeouts[$timeout['taskType']->value] = $timeout;
         }
         foreach ($customTimeouts as $timeout) {
@@ -121,5 +104,23 @@ final class CapMonsterConfiguration
         }
 
         return array_values($timeouts);
+    }
+
+    /**
+     * @return array<int, array{taskType: TypeTask, firstRequestDelay: int, requestInterval: int, timeout: int}>
+     */
+    private static function buildDefaultTimeouts(): array
+    {
+        $timeouts = [];
+        foreach (TypeTask::cases() as $typeTask) {
+            $timeouts[] = [
+                'taskType' => $typeTask,
+                'firstRequestDelay' => self::DEFAULT_FIRST_REQUEST_DELAY,
+                'requestInterval' => self::DEFAULT_REQUEST_INTERVAL,
+                'timeout' => self::DEFAULT_TIMEOUT,
+            ];
+        }
+
+        return $timeouts;
     }
 }

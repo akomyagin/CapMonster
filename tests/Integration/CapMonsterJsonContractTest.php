@@ -79,6 +79,26 @@ final class CapMonsterJsonContractTest extends TestCase
         (new ApiClient($http, $configuration))->getResultTask($task);
     }
 
+    public function testCreateTaskIncludesCallbackUrlWhenConfigured(): void
+    {
+        $configuration = new CapMonsterConfiguration('API_KEY_fixture', [
+            'callbackUrl' => 'https://example.com/callback',
+        ]);
+        $http = $this->createMock(ClientInterface::class);
+        $http->expects($this->once())->method('sendRequest')->willReturnCallback(
+            function (RequestInterface $request): ResponseInterface {
+                $payload = json_decode((string) $request->getBody(), true, 512, JSON_THROW_ON_ERROR);
+                $this->assertSame('https://example.com/callback', $payload['callbackUrl']);
+
+                return $this->jsonResponse('{"errorId":0,"taskId":42}');
+            }
+        );
+
+        (new ApiClient($http, $configuration))->createTask(
+            new NoCaptchaTask('https://example.com', 'k')
+        );
+    }
+
     private function jsonResponse(string $json, int $status = 200): ResponseInterface
     {
         $handle = fopen('php://memory', 'wb+');

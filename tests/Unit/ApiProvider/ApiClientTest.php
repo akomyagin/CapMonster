@@ -8,6 +8,7 @@ use CapMonsterClient\ApiProvider\ApiClient;
 use CapMonsterClient\ApiProvider\Dto\Response\GetTaskResultResponse;
 use CapMonsterClient\ApiProvider\Transformer\FromJsonTransformer;
 use CapMonsterClient\CapMonsterConfiguration;
+use CapMonsterClient\Common\Exception\AuthException;
 use CapMonsterClient\Common\Exception\CapMonsterException;
 use CapMonsterClient\Dto\Task\NoCaptchaTask;
 use CapMonsterClient\Enum\ErrorType;
@@ -45,10 +46,27 @@ final class ApiClientTest extends TestCase
             }
         );
 
-        $this->expectException(CapMonsterException::class);
+        $this->expectException(AuthException::class);
         $this->expectExceptionMessage(ErrorType::INVALID_KEY->description());
 
         (new ApiClient($http, $this->configuration))->getBalance();
+    }
+
+    public function testGetActualUserAgentReturnsTextPayload(): void
+    {
+        $http = $this->createMock(ClientInterface::class);
+        $http->expects($this->once())->method('sendRequest')->willReturnCallback(
+            function (RequestInterface $request): ResponseInterface {
+                $this->assertSame('https://capmonster.cloud/api/useragent/actual', (string) $request->getUri());
+                $this->assertSame('GET', $request->getMethod());
+
+                return $this->rawResponse("Mozilla/5.0 Test UA\n", 200);
+            }
+        );
+
+        $actual = (new ApiClient($http, $this->configuration))->getActualUserAgent();
+
+        $this->assertSame('Mozilla/5.0 Test UA', $actual);
     }
 
     public function testNonTwoHundredStatusThrowsResponseCodeError(): void
