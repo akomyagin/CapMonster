@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CapMonsterClient\Dto\Task;
 
 use CapMonsterClient\Enum\TypeTask;
+use JMS\Serializer\Annotation as Serializer;
 
 final class GeeTestTask extends AbstractTask
 {
@@ -69,15 +70,39 @@ final class GeeTestTask extends AbstractTask
 
     public function __construct(
         string $websiteUrl,
+        #[Serializer\SerializedName('gt')]
         private readonly string $gt,
-        private readonly string $challenge,
+        #[Serializer\SerializedName('challenge')]
+        #[Serializer\SkipWhenEmpty()]
+        private readonly ?string $challenge = null,
+        #[Serializer\SerializedName('geetestApiServerSubdomain')]
+        #[Serializer\SkipWhenEmpty()]
         private readonly ?string $geetestApiServerSubdomain = null,
+        #[Serializer\SerializedName('geetestGetLib')]
+        #[Serializer\SkipWhenEmpty()]
         private readonly ?string $geetestGetLib = null,
+        #[Serializer\SerializedName('version')]
+        private readonly ?int $version = 3,
+        #[Serializer\Exclude]
+        private readonly ?string $riskType = null,
         ?ProxySetting $proxySetting = null
     ) {
+        // The domain key travels only as "gt" (own field below); the parent's
+        // websiteKey slot stays empty and gets stripped from the final payload.
         parent::__construct(
             ($proxySetting === null) ? TypeTask::GEE_TEST_TASK_PROXYLESS : TypeTask::GEE_TEST_TASK,
-            $websiteUrl, $gt, proxySetting: $proxySetting);
+            $websiteUrl, '', proxySetting: $proxySetting);
+    }
+
+    /**
+     * @return array<string, string>|null
+     */
+    #[Serializer\VirtualProperty(name: 'initParameters')]
+    #[Serializer\SerializedName('initParameters')]
+    #[Serializer\SkipWhenEmpty()]
+    public function jmsInitParameters(): ?array
+    {
+        return $this->riskType !== null ? ['riskType' => $this->riskType] : null;
     }
 
     public function getGt(): string
@@ -85,9 +110,19 @@ final class GeeTestTask extends AbstractTask
         return $this->gt;
     }
 
-    public function getChallenge(): string
+    public function getChallenge(): ?string
     {
         return $this->challenge;
+    }
+
+    public function getVersion(): ?int
+    {
+        return $this->version;
+    }
+
+    public function getRiskType(): ?string
+    {
+        return $this->riskType;
     }
 
     public function getGeetestApiServerSubdomain(): ?string

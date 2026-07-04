@@ -1,1 +1,4 @@
 /vendor/
+/.idea/
+/.fleet/
+/.phpunit.cache/

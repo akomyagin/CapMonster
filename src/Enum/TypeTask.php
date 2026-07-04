@@ -36,15 +36,9 @@ enum TypeTask: string
 
     case TURNSTILE_TASK = 'TurnstileTask';
 
-    case TURNSTILE_TASK_PROXYLESS = 'TurnstileTaskProxyless';
-
     case TURNSTILE_CHALLENGE_TASK = 'TurnstileChallengeTask';
 
-    case TURNSTILE_CHALLENGE_TASK_PROXYLESS = 'TurnstileChallengeTaskProxyless';
-
     case TURNSTILE_WAITING_ROOM_TASK = 'TurnstileWaitingRoomTask';
-
-    case TURNSTILE_WAITING_ROOM_TASK_PROXYLESS = 'TurnstileWaitingRoomTaskProxyless';
 
     case COMPLEX_IMAGE_TASK = 'ComplexImageTask';
 

@@ -19,6 +19,7 @@ use CapMonsterClient\Common\Exception\ExceptionFactory;
 use CapMonsterClient\Common\Dto\Request\AbstractRequest;
 use CapMonsterClient\Common\Exception\CapMonsterException;
 use CapMonsterClient\Dto\Solution\AbstractSolution;
+use CapMonsterClient\Dto\Solution\RawSolution;
 use CapMonsterClient\Dto\Task\AbstractTask;
 use CapMonsterClient\Enum\ErrorType;
 use CapMonsterClient\Enum\TypeTask;
@@ -27,8 +28,7 @@ use CapMonsterClient\Resolver\TypeSolutionResolver;
 use CapMonsterClient\Serializer\Builder\SerializerBuilder;
 use Exception;
 use JMS\Serializer\Exception\RuntimeException;
-use Laminas\Diactoros\Request;
-use Laminas\Diactoros\Stream;
+use Nyholm\Psr7\Request;
 use Psr\Http\Client\ClientExceptionInterface;
 use Psr\Http\Client\ClientInterface;
 use Psr\Http\Message\ResponseInterface;
@@ -106,6 +106,9 @@ final class ApiClient
     public function extractTaskSolution(TypeTask $typeTask, GetTaskResultResponse $response): AbstractSolution
     {
         $className = (new TypeSolutionResolver())->resolve($typeTask);
+        if ($className === RawSolution::class) {
+            return new RawSolution($response->getSolution());
+        }
         try {
             return $this->serializerBuilder->build()->fromArray($response->getSolution(), $className);
         } catch (RuntimeException $exception) {
@@ -120,8 +123,7 @@ final class ApiClient
      */
     public function getActualUserAgent(): string
     {
-        $handle = fopen('php://temp', 'wb+');
-        $request = new Request('https://capmonster.cloud/api/useragent/actual', 'GET', new Stream($handle));
+        $request = new Request('GET', 'https://capmonster.cloud/api/useragent/actual');
         try {
             $response = $this->psrHttpClient->sendRequest($request);
         } catch (ClientExceptionInterface $exception) {

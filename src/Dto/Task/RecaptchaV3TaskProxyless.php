@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CapMonsterClient\Dto\Task;
 
 use CapMonsterClient\Enum\TypeTask;
+use JMS\Serializer\Annotation as Serializer;
 
 final class RecaptchaV3TaskProxyless extends AbstractTask
 {
@@ -34,7 +35,11 @@ final class RecaptchaV3TaskProxyless extends AbstractTask
     public function __construct(
         string $websiteUrl,
         string $websiteKey,
+        #[Serializer\SerializedName('minScore')]
+        #[Serializer\SkipWhenEmpty()]
         private readonly ?float $minScore = null,
+        #[Serializer\SerializedName('pageAction')]
+        #[Serializer\SkipWhenEmpty()]
         private readonly ?string $pageAction = null,
     )
     {

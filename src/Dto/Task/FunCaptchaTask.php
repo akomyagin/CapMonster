@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CapMonsterClient\Dto\Task;
 
 use CapMonsterClient\Enum\TypeTask;
+use JMS\Serializer\Annotation as Serializer;
 
 final class FunCaptchaTask extends AbstractTask
 {
@@ -44,6 +45,8 @@ final class FunCaptchaTask extends AbstractTask
     public function __construct(
         string $websiteUrl,
         private readonly string $websitePublicKey,
+        #[Serializer\SerializedName('funcaptchaApiJSSubdomain')]
+        #[Serializer\SkipWhenEmpty()]
         private readonly ?string $funCaptchaApiJsSubdomain = null,
         private readonly ?string $data = null,
         ?string $userAgent = null,

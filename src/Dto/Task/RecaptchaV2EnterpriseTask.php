@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CapMonsterClient\Dto\Task;
 
 use CapMonsterClient\Enum\TypeTask;
+use JMS\Serializer\Annotation as Serializer;
 
 final class RecaptchaV2EnterpriseTask extends AbstractTask
 {
@@ -49,8 +50,15 @@ final class RecaptchaV2EnterpriseTask extends AbstractTask
     public function __construct(
         string $websiteUrl,
         string $websiteKey,
+        #[Serializer\SerializedName('enterprisePayload')]
+        #[Serializer\SkipWhenEmpty()]
         private readonly ?string $enterprisePayload = null,
+        #[Serializer\SerializedName('apiDomain')]
+        #[Serializer\SkipWhenEmpty()]
         private readonly ?string $apiDomain = null,
+        #[Serializer\SerializedName('pageAction')]
+        #[Serializer\SkipWhenEmpty()]
+        private readonly ?string $pageAction = null,
         ?string $userAgent = null,
         ?string $cookies = null,
         ?ProxySetting $proxySetting = null
@@ -69,5 +77,10 @@ final class RecaptchaV2EnterpriseTask extends AbstractTask
     public function getApiDomain(): ?string
     {
         return $this->apiDomain;
+    }
+
+    public function getPageAction(): ?string
+    {
+        return $this->pageAction;
     }
 }

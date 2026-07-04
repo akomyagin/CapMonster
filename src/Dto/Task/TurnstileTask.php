@@ -1,31 +1,42 @@
 <?php
 
+declare(strict_types=1);
+
 namespace CapMonsterClient\Dto\Task;
 
 use CapMonsterClient\Enum\TypeTask;
+use JMS\Serializer\Annotation as Serializer;
 
 final class TurnstileTask extends AbstractTask
 {
-    /**
-     * Поддерживаются все подтипы Turnstile автоматически: manual, non-interactive и invisible.
-     * Поэтому нет необходимости указывать подтип.
-     * Такая задача будет выполняться нашим сервисом с использованием наших собственных прокси-серверов.
-     *
-     * параметр websiteUrl имя websiteURL тип String обязательно
-     * Адрес страницы на которой решается каптча
-     *
-     * параметр websiteKey тип String обязательно
-     * Ключ Turnstile
-     */
-
     public function __construct(
         string $websiteUrl,
         string $websiteKey,
+        #[Serializer\SerializedName('pageAction')]
+        #[Serializer\SkipWhenEmpty()]
+        private readonly ?string $pageAction = null,
+        #[Serializer\SerializedName('data')]
+        #[Serializer\SkipWhenEmpty()]
+        private readonly ?string $data = null,
+        ?string $userAgent = null,
         ?ProxySetting $proxySetting = null
     ) {
         parent::__construct(
-            ($proxySetting === null) ? TypeTask::TURNSTILE_TASK_PROXYLESS : TypeTask::TURNSTILE_TASK,
-            $websiteUrl, $websiteKey
+            TypeTask::TURNSTILE_TASK,
+            $websiteUrl,
+            $websiteKey,
+            $userAgent,
+            proxySetting: $proxySetting
         );
+    }
+
+    public function getPageAction(): ?string
+    {
+        return $this->pageAction;
+    }
+
+    public function getData(): ?string
+    {
+        return $this->data;
     }
 }

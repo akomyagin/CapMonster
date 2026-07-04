@@ -23,7 +23,7 @@ enum StatusTask: string implements EnumDescriptionInterface, StatusTaskResolverI
 
     public static function resolve(string $status): StatusTask
     {
-        if($enum = StatusTask::tryFrom($status)) {
+        if($enum = self::tryFrom($status)) {
 
             return $enum;
         }

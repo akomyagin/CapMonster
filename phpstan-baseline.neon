@@ -1,0 +1,76 @@
+parameters:
+	ignoreErrors:
+		-
+			message: "#^Class CapMonsterClient\\\\ApiProvider\\\\Dto\\\\Response\\\\AbstractResponse has an uninitialized readonly property \\$errorCode\\. Assign it in the constructor\\.$#"
+			count: 1
+			path: src/ApiProvider/Dto/Response/AbstractResponse.php
+
+		-
+			message: "#^Class CapMonsterClient\\\\ApiProvider\\\\Dto\\\\Response\\\\AbstractResponse has an uninitialized readonly property \\$errorId\\. Assign it in the constructor\\.$#"
+			count: 1
+			path: src/ApiProvider/Dto/Response/AbstractResponse.php
+
+		-
+			message: "#^Property CapMonsterClient\\\\ApiProvider\\\\Dto\\\\Response\\\\AbstractResponse\\:\\:\\$errorCode is never written, only read\\.$#"
+			count: 1
+			path: src/ApiProvider/Dto/Response/AbstractResponse.php
+
+		-
+			message: "#^Property CapMonsterClient\\\\ApiProvider\\\\Dto\\\\Response\\\\AbstractResponse\\:\\:\\$errorId is never written, only read\\.$#"
+			count: 1
+			path: src/ApiProvider/Dto/Response/AbstractResponse.php
+
+		-
+			message: "#^Class CapMonsterClient\\\\ApiProvider\\\\Dto\\\\Response\\\\CreateTaskResponse has an uninitialized readonly property \\$taskId\\. Assign it in the constructor\\.$#"
+			count: 1
+			path: src/ApiProvider/Dto/Response/CreateTaskResponse.php
+
+		-
+			message: "#^Property CapMonsterClient\\\\ApiProvider\\\\Dto\\\\Response\\\\CreateTaskResponse\\:\\:\\$taskId is never written, only read\\.$#"
+			count: 1
+			path: src/ApiProvider/Dto/Response/CreateTaskResponse.php
+
+		-
+			message: "#^Class CapMonsterClient\\\\ApiProvider\\\\Dto\\\\Response\\\\GetTaskResultResponse has an uninitialized readonly property \\$solution\\. Assign it in the constructor\\.$#"
+			count: 1
+			path: src/ApiProvider/Dto/Response/GetTaskResultResponse.php
+
+		-
+			message: "#^Class CapMonsterClient\\\\ApiProvider\\\\Dto\\\\Response\\\\GetTaskResultResponse has an uninitialized readonly property \\$status\\. Assign it in the constructor\\.$#"
+			count: 1
+			path: src/ApiProvider/Dto/Response/GetTaskResultResponse.php
+
+		-
+			message: "#^Property CapMonsterClient\\\\ApiProvider\\\\Dto\\\\Response\\\\GetTaskResultResponse\\:\\:\\$solution is never written, only read\\.$#"
+			count: 1
+			path: src/ApiProvider/Dto/Response/GetTaskResultResponse.php
+
+		-
+			message: "#^Property CapMonsterClient\\\\ApiProvider\\\\Dto\\\\Response\\\\GetTaskResultResponse\\:\\:\\$status is never written, only read\\.$#"
+			count: 1
+			path: src/ApiProvider/Dto/Response/GetTaskResultResponse.php
+
+		-
+			message: "#^Class CapMonsterClient\\\\Dto\\\\Config\\\\Config has an uninitialized readonly property \\$timeouts\\. Assign it in the constructor\\.$#"
+			count: 1
+			path: src/Dto/Config/Config.php
+
+		-
+			message: "#^Property CapMonsterClient\\\\Dto\\\\Config\\\\Config\\:\\:\\$baseUrl is never written, only read\\.$#"
+			count: 1
+			path: src/Dto/Config/Config.php
+
+		-
+			message: "#^Property CapMonsterClient\\\\Dto\\\\Config\\\\Config\\:\\:\\$maxGetTaskResultAttempts is never written, only read\\.$#"
+			count: 1
+			path: src/Dto/Config/Config.php
+
+		-
+			message: "#^Property CapMonsterClient\\\\Dto\\\\Config\\\\Config\\:\\:\\$method is never written, only read\\.$#"
+			count: 1
+			path: src/Dto/Config/Config.php
+
+		-
+			message: "#^Property CapMonsterClient\\\\Dto\\\\Config\\\\Config\\:\\:\\$timeouts is never written, only read\\.$#"
+			count: 1
+			path: src/Dto/Config/Config.php

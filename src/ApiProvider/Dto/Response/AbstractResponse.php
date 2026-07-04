@@ -16,9 +16,13 @@ abstract class AbstractResponse
     #[Serializer\Type("string")]
     private readonly ?string $errorCode;
 
+    /**
+     * Null coalescing keeps this safe even when the API omits "errorId"
+     * and JMS leaves the readonly property uninitialized.
+     */
     public function getErrorId(): int
     {
-        return (int) $this->errorId;
+        return (int) ($this->errorId ?? 0);
     }
 
     public function getErrorCode(): string

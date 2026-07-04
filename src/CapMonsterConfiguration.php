@@ -17,6 +17,7 @@ final class CapMonsterConfiguration
         'method' => 'POST',
         'callbackUrl' => null,
         'baseUrl' => 'https://api.capmonster.cloud',
+        'maxGetTaskResultAttempts' => 120,
         'headers' => [
             'Content-Type' => 'application/json',
             'Accept' => 'application/json',
@@ -29,11 +30,16 @@ final class CapMonsterConfiguration
 
     private Config $config;
 
+    /**
+     * @param array<string, mixed> $config
+     */
     public function __construct(
         private readonly string $clientKey,
         array $config = []
     ) {
-        $this->config = (new FromArrayTransformer())->transform(Config::class, $this->mergeConfig($config));
+        $merged = (new FromArrayTransformer())->transform(Config::class, $this->mergeConfig($config));
+        assert($merged instanceof Config);
+        $this->config = $merged;
     }
 
     public function getClientKey(): string
@@ -56,9 +62,17 @@ final class CapMonsterConfiguration
         return $this->config->getMethod();
     }
 
+    /**
+     * @return array<string, string|string[]>
+     */
     public function getHeaders(): array
     {
         return $this->config->getHeaders();
+    }
+
+    public function getMaxGetTaskResultAttempts(): int
+    {
+        return $this->config->getMaxGetTaskResultAttempts();
     }
 
     /**
@@ -75,6 +89,11 @@ final class CapMonsterConfiguration
         throw new EnumResolverException(sprintf('Timeout not found for task %s', $typeTask->name));
     }
 
+    /**
+     * @param array<string, mixed> $config
+     *
+     * @return array<string, mixed>
+     */
     private function mergeConfig(array $config): array
     {
         $timeouts = $this->mergeTimeouts($config['timeouts'] ?? []);
@@ -90,6 +109,11 @@ final class CapMonsterConfiguration
         return $config;
     }
 
+    /**
+     * @param array<int, array<string, mixed>> $customTimeouts
+     *
+     * @return array<int, array<string, mixed>>
+     */
     private function mergeTimeouts(array $customTimeouts): array
     {
         $timeouts = [];

@@ -9,7 +9,7 @@ use JMS\Serializer\Annotation as Serializer;
 final class Config
 {
     /**
-     * @var TimeoutConfig[]
+     * @var list<TimeoutConfig>
      */
     #[Serializer\SerializedName(name: 'timeouts')]
     #[Serializer\Type("array<CapMonsterClient\Dto\Config\TimeoutConfig>")]
@@ -23,24 +23,24 @@ final class Config
     #[Serializer\Type('string')]
     private string $baseUrl;
 
-    /**
-     * @var string[]
-     */
-    #[Serializer\SerializedName(name: 'methodUrls')]
-    #[Serializer\Type('array')]
-    private array $methodUrls;
-
     #[Serializer\SerializedName(name: 'method')]
     #[Serializer\Type('string')]
     private string $method;
 
+    #[Serializer\SerializedName(name: 'maxGetTaskResultAttempts')]
+    #[Serializer\Type('int')]
+    private int $maxGetTaskResultAttempts;
+
     /**
-     * @var array<string, string>
+     * @var array<string, string|string[]>
      */
     #[Serializer\SerializedName(name: 'headers')]
     #[Serializer\Type('array')]
     private array $headers = [];
 
+    /**
+     * @return list<TimeoutConfig>
+     */
     public function getTimeouts(): array
     {
         return $this->timeouts;
@@ -51,23 +51,23 @@ final class Config
         return $this->callbackUrl;
     }
 
-    public function getBaseUrl(): ?string
+    public function getBaseUrl(): string
     {
         return $this->baseUrl;
     }
 
-    public function getMethod(): ?string
+    public function getMethod(): string
     {
         return $this->method;
     }
 
-    public function getMethodUrls(): array
+    public function getMaxGetTaskResultAttempts(): int
     {
-        return $this->methodUrls;
+        return $this->maxGetTaskResultAttempts;
     }
 
     /**
-     * @return array<string, string>
+     * @return array<string, string|string[]>
      */
     public function getHeaders(): array
     {

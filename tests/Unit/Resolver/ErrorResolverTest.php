@@ -4,81 +4,75 @@ declare(strict_types=1);
 
 namespace Tests\Unit\Resolver;
 
+use CapMonsterClient\ApiProvider\Dto\Response\GetBalanceResponse;
 use CapMonsterClient\Enum\ErrorType;
-use CapMonsterClient\ApiProvider\Dto\Response\AbstractResponse;
 use CapMonsterClient\Resolver\ErrorResolver;
+use CapMonsterClient\Serializer\Builder\SerializerBuilder;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 
 final class ErrorResolverTest extends TestCase
 {
     /**
-     * @dataProvider provideKnownErrors
+     * @param array<string, mixed> $data
      */
-    public function testResolveKnownError(string $errorCode, ErrorType $expectedError): void
+    private function response(array $data): GetBalanceResponse
     {
-        $response = $this->createResponse(1, $errorCode);
+        $response = (new SerializerBuilder())->build()->fromArray($data, GetBalanceResponse::class);
+        assert($response instanceof GetBalanceResponse);
 
-        $error = ErrorResolver::resolve($response);
-
-        $this->assertSame($expectedError, $error);
+        return $response;
     }
 
-    public function testResolveUnknownError(): void
+    public function testReturnsNullForSuccessfulResponse(): void
     {
-        $response = $this->createResponse(1, 'SOME_UNKNOWN_CODE');
-
-        $error = ErrorResolver::resolve($response);
-
-        $this->assertSame(ErrorType::UNKNOWN_ERROR, $error);
+        self::assertNull(ErrorResolver::resolve($this->response(['errorId' => 0, 'balance' => 1.0])));
     }
 
-    public function testResolveWithoutError(): void
+    public function testResolvesKnownErrorCode(): void
     {
-        $response = $this->createResponse(0, '');
+        $response = $this->response(['errorId' => 1, 'errorCode' => 'ERROR_ZERO_BALANCE', 'balance' => 0.0]);
 
-        $error = ErrorResolver::resolve($response);
+        self::assertSame(ErrorType::NO_FUNDS, ErrorResolver::resolve($response));
+    }
 
-        $this->assertNull($error);
+    public function testUnknownErrorCodeFallsBackToUnknownError(): void
+    {
+        $response = $this->response(['errorId' => 1, 'errorCode' => 'ERROR_FROM_THE_FUTURE', 'balance' => 0.0]);
+
+        self::assertSame(ErrorType::UNKNOWN_ERROR, ErrorResolver::resolve($response));
+    }
+
+    public function testErrorIdWithoutCodeFallsBackToUnknownError(): void
+    {
+        $response = $this->response(['errorId' => 7, 'balance' => 0.0]);
+
+        self::assertSame(ErrorType::UNKNOWN_ERROR, ErrorResolver::resolve($response));
+    }
+
+    public function testErrorCodeWithZeroErrorIdIsStillAnError(): void
+    {
+        $response = $this->response(['errorId' => 0, 'errorCode' => 'ERROR_IP_BANNED', 'balance' => 0.0]);
+
+        self::assertTrue($response->isError());
+        self::assertSame(ErrorType::IP_BANNED, ErrorResolver::resolve($response));
     }
 
     /**
-     * @return array<string, array{0: string, 1: ErrorType}>
+     * @return iterable<string, array{string, ErrorType}>
      */
-    public static function provideKnownErrors(): array
+    public static function provideAllWireErrorCodes(): iterable
     {
-        return [
-            'no_funds' => [ErrorType::NO_FUNDS->value, ErrorType::NO_FUNDS],
-            'proxy_missing' => [ErrorType::PROXY_MISSING->value, ErrorType::PROXY_MISSING],
-            'proxy_not_authorised' => [ErrorType::PROXY_NOT_AUTHORISED->value, ErrorType::PROXY_NOT_AUTHORISED],
-            'proxy_read_timeout' => [ErrorType::PROXY_READ_TIMEOUT->value, ErrorType::PROXY_READ_TIMEOUT],
-            'task_absent' => [ErrorType::TASK_ABSENT->value, ErrorType::TASK_ABSENT],
-            'wrong_useragent' => [ErrorType::WRONG_USERAGENT->value, ErrorType::WRONG_USERAGENT],
-        ];
+        foreach (ErrorType::cases() as $case) {
+            yield $case->name => [$case->value, $case];
+        }
     }
 
-    private function createResponse(int $errorId, string $errorCode): AbstractResponse
+    #[DataProvider('provideAllWireErrorCodes')]
+    public function testEveryErrorTypeWireCodeResolvesToItsCase(string $code, ErrorType $expected): void
     {
-        return new class($errorId, $errorCode) extends AbstractResponse {
-            public function __construct(
-                private readonly int $forcedErrorId,
-                private readonly string $forcedErrorCode
-            ) {
-            }
+        $response = $this->response(['errorId' => 1, 'errorCode' => $code, 'balance' => 0.0]);
 
-            public function getErrorId(): int
-            {
-                return $this->forcedErrorId;
-            }
-
-            public function getErrorCode(): string
-            {
-                return $this->forcedErrorCode;
-            }
-
-            public function isError(): bool
-            {
-                return $this->forcedErrorId > 0 || $this->forcedErrorCode !== '';
-            }
-        };
+        self::assertSame($expected, ErrorResolver::resolve($response));
     }
 }

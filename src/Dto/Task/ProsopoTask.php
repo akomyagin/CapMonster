@@ -11,16 +11,10 @@ final class ProsopoTask extends AbstractTask
     public function __construct(
         string $websiteUrl,
         string $websiteKey,
-        private readonly ?string $metadata = null,
         ?string $userAgent = null,
         ?string $cookies = null,
         ?ProxySetting $proxySetting = null
     ) {
         parent::__construct(TypeTask::PROSOPO_TASK, $websiteUrl, $websiteKey, $userAgent, $cookies, $proxySetting);
-    }
-
-    public function getMetadata(): ?string
-    {
-        return $this->metadata;
     }
 }

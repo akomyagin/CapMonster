@@ -4,6 +4,8 @@ declare(strict_types=1);
 
 namespace CapMonsterClient\Dto\Solution;
 
+use JMS\Serializer\Annotation as Serializer;
+
 final class HCaptchaSolution extends AbstractSolution
 {
     /*
@@ -19,8 +21,14 @@ final class HCaptchaSolution extends AbstractSolution
      */
 
     public function __construct(
+        #[Serializer\SerializedName(name: 'gRecaptchaResponse')]
+        #[Serializer\Type('string')]
         private readonly string $gRecaptchaResponse,
+        #[Serializer\SerializedName(name: 'userAgent')]
+        #[Serializer\Type('string')]
         private readonly string $userAgent,
+        #[Serializer\SerializedName(name: 'respKey')]
+        #[Serializer\Type('string')]
         private readonly string $respKey
     ) {
     }

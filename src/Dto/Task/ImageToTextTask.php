@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CapMonsterClient\Dto\Task;
 
 use CapMonsterClient\Enum\TypeTask;
+use JMS\Serializer\Annotation as Serializer;
 
 final class ImageToTextTask extends AbstractTask
 {
@@ -36,7 +37,11 @@ final class ImageToTextTask extends AbstractTask
 
     public function __construct(
         private readonly string $body,
+        #[Serializer\SerializedName('capMonsterModule')]
+        #[Serializer\SkipWhenEmpty()]
         private readonly ?string $capMonsterModule = null,
+        #[Serializer\SerializedName('recognizingThreshold')]
+        #[Serializer\SkipWhenEmpty()]
         private readonly ?int $recognizingThreshold = null,
         private readonly ?bool $case = null,
         private readonly ?int $numeric = null,

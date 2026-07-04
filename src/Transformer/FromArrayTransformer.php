@@ -18,6 +18,9 @@ final class FromArrayTransformer implements FromArrayTransformerInterface
         $this->serializerBuilder = $serializerBuilder ?? new SerializerBuilder();
     }
 
+    /**
+     * @param array<string, mixed> $data
+     */
     public function transform(string $className, array $data): object
     {
         return

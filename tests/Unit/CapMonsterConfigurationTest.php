@@ -6,54 +6,121 @@ namespace Tests\Unit;
 
 use CapMonsterClient\CapMonsterConfiguration;
 use CapMonsterClient\Enum\TypeTask;
+use PHPUnit\Framework\TestCase;
+use ValueError;
 
-final class CapMonsterConfigurationTest extends AbstractTestCase
+final class CapMonsterConfigurationTest extends TestCase
 {
-    public function testDefaultBaseUrlMatchesCapMonsterCloudApi(): void
+    public function testDefaults(): void
     {
-        $configuration = new CapMonsterConfiguration(self::SECRET_KEY);
+        $config = new CapMonsterConfiguration('client-key');
 
-        $this->assertSame('https://api.capmonster.cloud', $configuration->getBaseUrl());
+        self::assertSame('client-key', $config->getClientKey());
+        self::assertSame('https://api.capmonster.cloud', $config->getBaseUrl());
+        self::assertSame('POST', $config->getMethod());
+        self::assertSame(120, $config->getMaxGetTaskResultAttempts());
+        self::assertNull($config->getCallbackUrl());
+        self::assertSame(
+            [
+                'Content-Type' => 'application/json',
+                'Accept' => 'application/json',
+            ],
+            $config->getHeaders()
+        );
     }
 
-    public function testCustomBaseUrlOverridesDefault(): void
+    public function testDefaultTimeoutsExistForEveryTypeTask(): void
     {
-        $configuration = new CapMonsterConfiguration(self::SECRET_KEY, [
-            'baseUrl' => 'https://staging-api.example.test',
-        ]);
+        $config = new CapMonsterConfiguration('key');
 
-        $this->assertSame('https://staging-api.example.test', $configuration->getBaseUrl());
+        foreach (TypeTask::cases() as $typeTask) {
+            $timeout = $config->getTimeoutConfig($typeTask);
+            self::assertSame($typeTask, $timeout->getTypeTask());
+            self::assertSame(2, $timeout->getFirstRequestDelay());
+            self::assertSame(2, $timeout->getRequestInterval());
+            self::assertSame(120, $timeout->getTimeout());
+        }
     }
 
-    public function testCustomTimeoutOverridesDefaultForSameTaskType(): void
+    public function testCustomTimeoutOverridesDefaultOnlyForItsType(): void
     {
-        $configuration = new CapMonsterConfiguration(self::SECRET_KEY, [
+        $config = new CapMonsterConfiguration('key', [
             'timeouts' => [
                 [
-                    'taskType' => TypeTask::NO_CAPTCHA_TASK_PROXYLESS,
-                    'firstRequestDelay' => 5,
-                    'requestInterval' => 7,
-                    'timeout' => 120,
+                    'taskType' => TypeTask::IMAGE_TO_TEXT_TASK,
+                    'firstRequestDelay' => 0,
+                    'requestInterval' => 1,
+                    'timeout' => 5,
                 ],
             ],
         ]);
 
-        $timeout = $configuration->getTimeoutConfig(TypeTask::NO_CAPTCHA_TASK_PROXYLESS);
+        $custom = $config->getTimeoutConfig(TypeTask::IMAGE_TO_TEXT_TASK);
+        self::assertSame(0, $custom->getFirstRequestDelay());
+        self::assertSame(1, $custom->getRequestInterval());
+        self::assertSame(5, $custom->getTimeout());
 
-        $this->assertSame(5, $timeout->getFirstRequestDelay());
-        $this->assertSame(7, $timeout->getRequestInterval());
-        $this->assertSame(120, $timeout->getTimeout());
+        $untouched = $config->getTimeoutConfig(TypeTask::TURNSTILE_TASK);
+        self::assertSame(2, $untouched->getFirstRequestDelay());
+        self::assertSame(2, $untouched->getRequestInterval());
+        self::assertSame(120, $untouched->getTimeout());
     }
 
-    public function testDefaultTimeoutExistsForEveryTaskType(): void
+    public function testCustomTimeoutAcceptsStringTaskType(): void
     {
-        $configuration = new CapMonsterConfiguration(self::SECRET_KEY);
+        $config = new CapMonsterConfiguration('key', [
+            'timeouts' => [
+                [
+                    'taskType' => 'TurnstileTask',
+                    'firstRequestDelay' => 3,
+                    'requestInterval' => 4,
+                    'timeout' => 30,
+                ],
+            ],
+        ]);
 
-        foreach (TypeTask::cases() as $typeTask) {
-            $timeout = $configuration->getTimeoutConfig($typeTask);
-            $this->assertGreaterThanOrEqual(0, $timeout->getFirstRequestDelay());
-            $this->assertGreaterThanOrEqual(1, $timeout->getRequestInterval());
-            $this->assertGreaterThan(0, $timeout->getTimeout());
-        }
+        $timeout = $config->getTimeoutConfig(TypeTask::TURNSTILE_TASK);
+        self::assertSame(3, $timeout->getFirstRequestDelay());
+        self::assertSame(4, $timeout->getRequestInterval());
+        self::assertSame(30, $timeout->getTimeout());
+    }
+
+    public function testUnknownTimeoutTaskTypeStringThrows(): void
+    {
+        $this->expectException(ValueError::class);
+
+        new CapMonsterConfiguration('key', [
+            'timeouts' => [
+                [
+                    'taskType' => 'NotATask',
+                    'firstRequestDelay' => 0,
+                    'requestInterval' => 1,
+                    'timeout' => 5,
+                ],
+            ],
+        ]);
+    }
+
+    public function testCustomHeadersReplaceDefaultsEntirely(): void
+    {
+        // The merge is a top-level array_merge: a custom "headers" entry replaces
+        // the whole default header set (Content-Type/Accept are NOT kept).
+        $config = new CapMonsterConfiguration('key', ['headers' => ['X-Custom' => 'v']]);
+
+        self::assertSame(['X-Custom' => 'v'], $config->getHeaders());
+    }
+
+    public function testScalarOverrides(): void
+    {
+        $config = new CapMonsterConfiguration('key', [
+            'baseUrl' => 'https://proxy.internal',
+            'method' => 'POST',
+            'maxGetTaskResultAttempts' => 3,
+            'callbackUrl' => 'https://cb.test/hook',
+        ]);
+
+        self::assertSame('https://proxy.internal', $config->getBaseUrl());
+        self::assertSame(3, $config->getMaxGetTaskResultAttempts());
+        self::assertSame('https://cb.test/hook', $config->getCallbackUrl());
     }
 }

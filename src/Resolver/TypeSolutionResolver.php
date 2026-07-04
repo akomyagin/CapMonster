@@ -22,12 +22,13 @@ final class TypeSolutionResolver
             TypeTask::RECAPTCHA_V2_ENTERPRISE_TASK, TypeTask::RECAPTCHA_V2_ENTERPRISE_TASK_PROXYLESS,
             TypeTask::RECAPTCHA_V3_ENTERPRISE_TASK, TypeTask::RECAPTCHA_V3_ENTERPRISE_TASK_PROXYLESS => ReCaptchaSolution::class,
             TypeTask::FUN_CAPTCHA_TASK, TypeTask::FUN_CAPTCHA_TASK_PROXYLESS,
-            TypeTask::TURNSTILE_TASK, TypeTask::TURNSTILE_TASK_PROXYLESS,
-            TypeTask::TURNSTILE_CHALLENGE_TASK, TypeTask::TURNSTILE_CHALLENGE_TASK_PROXYLESS,
-            TypeTask::TURNSTILE_WAITING_ROOM_TASK, TypeTask::TURNSTILE_WAITING_ROOM_TASK_PROXYLESS => TokenSolution::class,
+            TypeTask::TURNSTILE_TASK, TypeTask::TURNSTILE_CHALLENGE_TASK,
+            TypeTask::TURNSTILE_WAITING_ROOM_TASK => TokenSolution::class,
             TypeTask::H_CAPTCHA_TASK, TypeTask::H_CAPTCHA_TASK_PROXYLESS => HCaptchaSolution::class,
             TypeTask::GEE_TEST_TASK_PROXYLESS, TypeTask::GEE_TEST_TASK => GeeTestSolution::class,
-            TypeTask::COMPLEX_IMAGE_TASK => TextSolution::class,
+            // Solution shape {answer: string|array, metadata: {AnswerType}} varies per
+            // sub-recognizer — expose it raw instead of forcing TextSolution's {text}.
+            TypeTask::COMPLEX_IMAGE_TASK => RawSolution::class,
             TypeTask::DATADOME_TASK, TypeTask::BASILISK_TASK, TypeTask::TENDI_TASK, TypeTask::AMAZON_TASK,
             TypeTask::BINANCE_TASK, TypeTask::IMPERVA_TASK, TypeTask::PROSOPO_TASK, TypeTask::YIDUN_TASK,
             TypeTask::MT_CAPTCHA_TASK, TypeTask::ALTCHA_TASK, TypeTask::CASTLE_TASK, TypeTask::TSPD_TASK,

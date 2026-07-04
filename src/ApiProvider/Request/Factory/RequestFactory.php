@@ -8,8 +8,7 @@ use CapMonsterClient\CapMonsterConfiguration;
 use CapMonsterClient\Common\Dto\Request\AbstractRequest;
 use CapMonsterClient\Serializer\Builder\SerializerBuilder;
 use CapMonsterClient\Transformer\RequestTransformer;
-use Laminas\Diactoros\Request;
-use Laminas\Diactoros\Stream;
+use Nyholm\Psr7\Factory\Psr17Factory;
 use Psr\Http\Message\RequestInterface;
 
 final class RequestFactory implements RequestFactoryInterface
@@ -22,15 +21,20 @@ final class RequestFactory implements RequestFactoryInterface
 
     public function create(AbstractRequest $request): RequestInterface
     {
-        $fp = fopen("php://temp", 'wb+');
-        fwrite($fp, (new RequestTransformer($this->serializerBuilder))->transform($request));
-
-        return
-            new Request(
-                implode('/', [$this->configuration->getBaseUrl(), $request->getMethod()->value]),
+        $factory = new Psr17Factory();
+        $httpRequest = $factory
+            ->createRequest(
                 $this->configuration->getMethod(),
-                new Stream($fp),
-                $this->configuration->getHeaders()
+                implode('/', [$this->configuration->getBaseUrl(), $request->getMethod()->value])
+            )->withBody(
+                $factory->createStream(
+                    (new RequestTransformer($this->serializerBuilder))->transform($request)
+                )
             );
+        foreach ($this->configuration->getHeaders() as $name => $value) {
+            $httpRequest = $httpRequest->withHeader($name, $value);
+        }
+
+        return $httpRequest;
     }
 }

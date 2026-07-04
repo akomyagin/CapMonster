@@ -12,12 +12,11 @@ class CapMonsterException extends Exception implements ClientExceptionInterface
 {
     public function __construct(
         private readonly ErrorType $type,
-        ?Exception $previousException = null
-    )
-    {
+        ?\Throwable $previousException = null
+    ) {
         parent::__construct(
             message: $type->description(),
-            code: $previousException ? $previousException->getCode() : 0,
+            code: $previousException !== null ? (int) $previousException->getCode() : 0,
             previous: $previousException
         );
     }

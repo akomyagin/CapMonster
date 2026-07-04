@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CapMonsterClient\Dto\Task;
 
 use CapMonsterClient\Enum\TypeTask;
+use JMS\Serializer\Annotation as Serializer;
 
 final class HCaptchaTask extends AbstractTask
 {
@@ -39,8 +40,15 @@ final class HCaptchaTask extends AbstractTask
     public function __construct(
         string $websiteUrl,
         string $websiteKey,
+        #[Serializer\SerializedName('isInvisible')]
+        #[Serializer\Type('boolean')]
+        #[Serializer\SkipWhenEmpty()]
         private readonly ?bool $isInvisible = null,
         private readonly ?string $data = null,
+        #[Serializer\SerializedName('fallbackToActualUA')]
+        #[Serializer\Type('boolean')]
+        #[Serializer\SkipWhenEmpty()]
+        private readonly ?bool $fallbackToActualUA = null,
         ?string $userAgent = null,
         ?string $cookies = null,
         ?ProxySetting $proxySetting = null
@@ -59,5 +67,10 @@ final class HCaptchaTask extends AbstractTask
     public function getData(): ?string
     {
         return $this->data;
+    }
+
+    public function getFallbackToActualUA(): ?bool
+    {
+        return $this->fallbackToActualUA;
     }
 }

@@ -19,8 +19,6 @@ use Psr\Http\Client\ClientInterface;
 
 final class CapMonsterClient implements CapMonsterClientInterface
 {
-    private const MAX_GET_TASK_RESULT_ATTEMPTS = 120;
-
     private readonly ApiClient $apiProvider;
 
     public function __construct(
@@ -69,7 +67,7 @@ final class CapMonsterClient implements CapMonsterClientInterface
         $attempts = 0;
         while (true) {
             ++$attempts;
-            if ($attempts > self::MAX_GET_TASK_RESULT_ATTEMPTS) {
+            if ($attempts > $this->configuration->getMaxGetTaskResultAttempts()) {
                 throw new CapMonsterException(ErrorType::REQUEST_LIMIT_EXCEEDED);
             }
             $statusTaskResponse = $this->apiProvider->getResultTask($task);

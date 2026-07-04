@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace CapMonsterClient\Dto\Task;
 
 use CapMonsterClient\Enum\TypeTask;
+use JMS\Serializer\Annotation as Serializer;
 
 final class NoCaptchaTask extends AbstractTask
 {
@@ -38,7 +39,13 @@ final class NoCaptchaTask extends AbstractTask
     public function __construct(
         string $websiteUrl,
         string $websiteKey,
+        #[Serializer\SerializedName('recaptchaDataSValue')]
+        #[Serializer\SkipWhenEmpty()]
         private readonly ?string $recaptchaDataSValue = null,
+        #[Serializer\SerializedName('isInvisible')]
+        #[Serializer\Type('boolean')]
+        #[Serializer\SkipWhenEmpty()]
+        private readonly ?bool $isInvisible = null,
         ?string $userAgent = null,
         ?string $cookies = null,
         ?ProxySetting $proxySetting = null
@@ -52,5 +59,10 @@ final class NoCaptchaTask extends AbstractTask
     public function getRecaptchaDataSValue(): ?string
     {
         return $this->recaptchaDataSValue;
+    }
+
+    public function getIsInvisible(): ?bool
+    {
+        return $this->isInvisible;
     }
 }

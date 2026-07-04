@@ -5,13 +5,15 @@ declare(strict_types=1);
 namespace CapMonsterClient\Dto\Task;
 
 use CapMonsterClient\Enum\TypeTask;
+use JMS\Serializer\Annotation as Serializer;
 
 final class BinanceTask extends AbstractTask
 {
     public function __construct(
         string $websiteUrl,
         string $websiteKey,
-        private readonly ?string $metadata = null,
+        #[Serializer\SerializedName('validateId')]
+        private readonly string $validateId,
         ?string $userAgent = null,
         ?string $cookies = null,
         ?ProxySetting $proxySetting = null
@@ -19,8 +21,8 @@ final class BinanceTask extends AbstractTask
         parent::__construct(TypeTask::BINANCE_TASK, $websiteUrl, $websiteKey, $userAgent, $cookies, $proxySetting);
     }
 
-    public function getMetadata(): ?string
+    public function getValidateId(): string
     {
-        return $this->metadata;
+        return $this->validateId;
     }
 }
