@@ -590,6 +590,20 @@ final class RequestTransformerTest extends TestCase
         self::assertArrayNotHasKey('cookies', $payload);
     }
 
+    public function testHuntTaskStripsWebsiteKeyAndCookies(): void
+    {
+        // Per docs/API_CONTRACT.md Hunt sends only websiteURL + metadata (+ userAgent/proxy):
+        // no websiteKey and no cookies on the wire.
+        $task = new HuntTask(self::URL, self::KEY, '{"apiGetLib":"https://x/lib.js"}', 'UA', 'c=9');
+        $payload = $this->taskPayload($task);
+
+        self::assertSame('CustomTask', $payload['type']);
+        self::assertSame('HUNT', $payload['class']);
+        self::assertSame(['apiGetLib' => 'https://x/lib.js'], $payload['metadata']);
+        self::assertArrayNotHasKey('websiteKey', $payload);
+        self::assertArrayNotHasKey('cookies', $payload);
+    }
+
     public function testBasiliskTenDiCastleHuntCustomTaskClasses(): void
     {
         self::assertSame('Basilisk', $this->taskPayload(new BasiliskTask(self::URL, self::KEY))['class']);
@@ -661,7 +675,9 @@ final class RequestTransformerTest extends TestCase
 
     public function testYidunTaskFullPayload(): void
     {
-        $task = new YidunTask(self::URL, self::KEY, 'lib', 'sub', 'chal', 'hcg', 'hct');
+        // Doc-verified (docs/captchas/yidun-task.mdx): `hct` is an INTEGER timestamp
+        // (example 1751469954806), so it must serialize as a JSON number, not a string.
+        $task = new YidunTask(self::URL, self::KEY, 'lib', 'sub', 'chal', 'hcg', 1751469954806);
 
         self::assertSame(
             [
@@ -672,7 +688,7 @@ final class RequestTransformerTest extends TestCase
                 'yidunApiServerSubdomain' => 'sub',
                 'challenge' => 'chal',
                 'hcg' => 'hcg',
-                'hct' => 'hct',
+                'hct' => 1751469954806,
             ],
             $this->taskPayload($task)
         );

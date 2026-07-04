@@ -25,8 +25,9 @@ final class YidunTask extends AbstractTask
         #[Serializer\SkipWhenEmpty()]
         private readonly ?string $hcg = null,
         #[Serializer\SerializedName('hct')]
+        #[Serializer\Type('integer')]
         #[Serializer\SkipWhenEmpty()]
-        private readonly ?string $hct = null,
+        private readonly ?int $hct = null,
         ?string $userAgent = null,
         ?string $cookies = null,
         ?ProxySetting $proxySetting = null
@@ -54,7 +55,7 @@ final class YidunTask extends AbstractTask
         return $this->hcg;
     }
 
-    public function getHct(): ?string
+    public function getHct(): ?int
     {
         return $this->hct;
     }

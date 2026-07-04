@@ -12,6 +12,7 @@ use CapMonsterClient\Dto\Task\AlibabaTask;
 use CapMonsterClient\Dto\Task\AltchaTask;
 use CapMonsterClient\Dto\Task\DataDomeTask;
 use CapMonsterClient\Dto\Task\FunCaptchaTask;
+use CapMonsterClient\Dto\Task\HuntTask;
 use CapMonsterClient\Dto\Task\ImpervaTask;
 use CapMonsterClient\Dto\Task\TSPDTask;
 use CapMonsterClient\Enum\ApiMethod;
@@ -84,7 +85,7 @@ final class RequestTransformer
             $payload['websitePublicKey'] = $task->getWebsitePublicKey();
         }
 
-        if ($task instanceof DataDomeTask || $task instanceof ImpervaTask || $task instanceof AlibabaTask || $task instanceof TSPDTask) {
+        if ($task instanceof DataDomeTask || $task instanceof ImpervaTask || $task instanceof AlibabaTask || $task instanceof TSPDTask || $task instanceof HuntTask) {
             unset($payload['websiteKey'], $payload['cookies']);
         }
 

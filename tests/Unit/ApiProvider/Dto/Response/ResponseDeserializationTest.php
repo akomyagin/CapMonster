@@ -8,6 +8,9 @@ use CapMonsterClient\ApiProvider\Dto\Response\CreateTaskResponse;
 use CapMonsterClient\ApiProvider\Dto\Response\GetBalanceResponse;
 use CapMonsterClient\ApiProvider\Dto\Response\GetTaskResultResponse;
 use CapMonsterClient\ApiProvider\Transformer\FromJsonTransformer;
+use CapMonsterClient\Common\Exception\CapMonsterException;
+use CapMonsterClient\Common\Exception\EnumResolverException;
+use CapMonsterClient\Enum\ErrorType;
 use CapMonsterClient\Enum\StatusTask;
 use CapMonsterClient\Serializer\Builder\SerializerBuilder;
 use PHPUnit\Framework\TestCase;
@@ -75,6 +78,36 @@ final class ResponseDeserializationTest extends TestCase
 
         self::assertSame(StatusTask::READY, $response->getStatus());
         self::assertSame(['token' => 'T', 'userAgent' => 'UA'], $response->getSolution());
+    }
+
+    public function testGetTaskResultResponseUnknownStatusThrowsCapMonsterException(): void
+    {
+        // A status value outside the StatusTask enum must surface as CapMonsterException,
+        // not as a raw \ValueError from the enum deserialization.
+        $response = $this->fromJson('{"errorId":0,"status":"failed"}', GetTaskResultResponse::class);
+
+        try {
+            $response->getStatus();
+            self::fail('Expected CapMonsterException for unknown status');
+        } catch (CapMonsterException $exception) {
+            self::assertSame(ErrorType::RESPONSE_ERROR, $exception->getType());
+            self::assertInstanceOf(EnumResolverException::class, $exception->getPrevious());
+        }
+    }
+
+    public function testGetTaskResultResponseMissingStatusThrowsCapMonsterException(): void
+    {
+        // A response without "status" must surface as CapMonsterException,
+        // not as a raw \Error about an uninitialized readonly property.
+        $response = $this->fromJson('{"errorId":0}', GetTaskResultResponse::class);
+
+        try {
+            $response->getStatus();
+            self::fail('Expected CapMonsterException for missing status');
+        } catch (CapMonsterException $exception) {
+            self::assertSame(ErrorType::RESPONSE_ERROR, $exception->getType());
+            self::assertInstanceOf(EnumResolverException::class, $exception->getPrevious());
+        }
     }
 
     public function testResponsesTolerateMissingErrorId(): void
