@@ -1,6 +1,8 @@
 {
     "name": "cap_monster/client",
-    "description": "description",
+    "description": "PHP client for the CapMonster Cloud captcha-solving API (reCAPTCHA v2/v3, hCaptcha, FunCaptcha, GeeTest, Turnstile, image-to-text and more)",
+    "keywords": ["capmonster", "captcha", "recaptcha", "hcaptcha", "funcaptcha", "geetest", "turnstile", "captcha-solver"],
+    "homepage": "https://github.com/akomyagin/CapMonster",
     "minimum-stability": "stable",
     "license": "MIT",
     "type": "library",
@@ -10,6 +12,10 @@
             "email": "alkom68@gmail.com"
         }
     ],
+    "support": {
+        "issues": "https://github.com/akomyagin/CapMonster/issues",
+        "source": "https://github.com/akomyagin/CapMonster"
+    },
     "require": {
         "php": "^8.2",
         "psr/http-client": "^1.0",
