@@ -42,9 +42,15 @@ $balance = $client->getBalance();
 
 Each task's exact request/response shape is documented in the source repository's `docs/API_CONTRACT.md` (not shipped in the installed package — see the [GitHub repo](https://github.com/akomyagin/CapMonster)).
 
+> **Note:** per CapMonster Cloud support (July 2026) and confirmed against the live API, hCaptcha is currently **not** being solved by the service — `createTask` with an `HCaptchaTask`/`HCaptchaTaskProxyless` payload is immediately rejected with `ERROR_TASK_NOT_SUPPORTED` (no balance charged), despite the task being fully implemented here per the documented wire format. Check with CapMonster support for current availability before relying on it.
+
 ## Configuration
 
 `CapMonsterConfiguration` accepts an optional array of overrides (base URL, per-task polling timeouts, HTTP headers, callback URL, max poll attempts) — see `CapMonsterConfiguration::__construct()` for the full option set.
+
+## Verified against the live API
+
+`ImageToTextTask`, `NoCaptchaTask` (reCAPTCHA v2), and `TurnstileTask` have each been run end-to-end against the real `api.capmonster.cloud` (real account, real balance deduction) and correctly solved. `HCaptchaTask` was confirmed rejected by the live API as described above.
 
 ## License
 
