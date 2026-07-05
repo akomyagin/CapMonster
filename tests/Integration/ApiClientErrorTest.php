@@ -9,6 +9,7 @@ use CapMonsterClient\CapMonsterConfiguration;
 use CapMonsterClient\Common\Exception\CapMonsterException;
 use CapMonsterClient\Dto\Task\ImageToTextTask;
 use CapMonsterClient\Enum\ErrorType;
+use PHPUnit\Framework\Attributes\DataProvider;
 use PHPUnit\Framework\TestCase;
 use Tests\Support\RecordingHandler;
 use Tests\Support\ThrowingHandler;
@@ -74,6 +75,54 @@ final class ApiClientErrorTest extends TestCase
         $this->handler->pushJson(['errorId' => 1, 'errorCode' => 'ERROR_NOT_IN_THE_ENUM']);
 
         $this->assertThrowsErrorType(ErrorType::UNKNOWN_ERROR, fn () => $this->apiClient->getBalance());
+    }
+
+    /**
+     * @return iterable<string, array{callable(\CapMonsterClient\ApiProvider\ApiClient): mixed}>
+     */
+    public static function provideJsonApiMethods(): iterable
+    {
+        yield 'getBalance' => [static fn (ApiClient $client): mixed => $client->getBalance()];
+        yield 'createTask' => [static fn (ApiClient $client): mixed => $client->createTask(new ImageToTextTask('B64'))];
+        yield 'getResultTask' => [static function (ApiClient $client): mixed {
+            $task = new ImageToTextTask('B64');
+            $task->setTaskId(1);
+
+            return $client->getResultTask($task);
+        }];
+    }
+
+    /**
+     * The real API returns auth errors as HTTP 403 with the standard JSON error body
+     * (confirmed against api.capmonster.cloud). The structured error must win over
+     * the generic status-code error.
+     *
+     * @param callable(ApiClient): mixed $call
+     */
+    #[DataProvider('provideJsonApiMethods')]
+    public function testStructuredErrorBodyOnNon2xxStatusIsMappedToSpecificErrorType(callable $call): void
+    {
+        $this->handler->pushJson(
+            ['errorId' => 1, 'errorCode' => 'ERROR_KEY_DOES_NOT_EXIST', 'errorDescription' => 'Account authorization key not found in the system'],
+            403
+        );
+
+        $this->assertThrowsErrorType(ErrorType::INVALID_KEY, fn () => $call($this->apiClient));
+    }
+
+    public function testNon2xxWithEmptyBodyStillMapsToResponseCodeError(): void
+    {
+        $this->handler->pushText('', 404);
+
+        try {
+            $this->apiClient->getBalance();
+            self::fail('Expected CapMonsterException was not thrown');
+        } catch (CapMonsterException $exception) {
+            self::assertSame(ErrorType::RESPONSE_CODE_ERROR, $exception->getType());
+            self::assertSame(404, $exception->getCode());
+            self::assertNotNull($exception->getPrevious());
+            self::assertSame('', $exception->getPrevious()->getMessage());
+        }
     }
 
     public function testNon2xxStatusCodeMapsToResponseCodeError(): void

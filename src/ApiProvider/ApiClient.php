@@ -55,10 +55,7 @@ final class ApiClient
     {
         $request = new GetBalanceRequest($this->configuration->getClientKey());
         $response = $this->sendRequest($request);
-        $this->assertSuccessfulResponse($response);
-        /** @var GetBalanceResponse $dtoResponse */
-        $dtoResponse = $this->deserializeResponse((string) $response->getBody(), GetBalanceResponse::class);
-        $this->checkErrorResponse($dtoResponse);
+        $dtoResponse = $this->processResponse($response, GetBalanceResponse::class);
 
         return $dtoResponse->getBalance();
     }
@@ -74,12 +71,8 @@ final class ApiClient
             $this->configuration->getCallbackUrl()
         );
         $response = $this->sendRequest($request);
-        $this->assertSuccessfulResponse($response);
-        /** @var CreateTaskResponse $dtoResponse */
-        $dtoResponse = $this->deserializeResponse((string) $response->getBody(), CreateTaskResponse::class);
-        $this->checkErrorResponse($dtoResponse);
 
-        return $dtoResponse;
+        return $this->processResponse($response, CreateTaskResponse::class);
     }
 
     /**
@@ -92,12 +85,8 @@ final class ApiClient
             $task
         );
         $response = $this->sendRequest($request);
-        $this->assertSuccessfulResponse($response);
-        /** @var GetTaskResultResponse $dtoResponse */
-        $dtoResponse = $this->deserializeResponse((string) $response->getBody(), GetTaskResultResponse::class);
-        $this->checkErrorResponse($dtoResponse);
 
-        return $dtoResponse;
+        return $this->processResponse($response, GetTaskResultResponse::class);
     }
 
     /**
@@ -178,14 +167,52 @@ final class ApiClient
     }
 
     /**
+     * Parses a JSON API response and maps it to a DTO or a CapMonsterException.
+     *
+     * The body is inspected for a structured error BEFORE the HTTP status code is
+     * considered: the real API returns auth errors (e.g. ERROR_KEY_DOES_NOT_EXIST)
+     * as HTTP 403 with the same JSON error shape it uses for HTTP 200 errors, and
+     * those must map to their specific ErrorType instead of a generic
+     * RESPONSE_CODE_ERROR. The generic RESPONSE_CODE_ERROR (with the original HTTP
+     * status preserved as the exception code) remains the fallback for non-2xx
+     * responses whose body carries no parseable structured error.
+     *
+     * @template T of AbstractResponse
+     *
+     * @param class-string<T> $className
+     *
+     * @return T
+     *
      * @throws CapMonsterException
      */
-    private function deserializeResponse(string $content, string $className): object
+    private function processResponse(ResponseInterface $response, string $className): AbstractResponse
     {
+        $body = (string) $response->getBody();
+        $code = $response->getStatusCode();
+        $isSuccessStatusCode = (bool) preg_match('~^2\d+~', (string) $code);
+
         try {
-            return (new FromJsonTransformer($this->serializerBuilder, $className))->transform($content);
+            /** @var T $dtoResponse */
+            $dtoResponse = (new FromJsonTransformer($this->serializerBuilder, $className))->transform($body);
         } catch (RuntimeException $exception) {
-            throw ExceptionFactory::fromErrorType(ErrorType::RESPONSE_ERROR, $exception);
+            if ($isSuccessStatusCode) {
+                throw ExceptionFactory::fromErrorType(ErrorType::RESPONSE_ERROR, $exception);
+            }
+            throw ExceptionFactory::fromErrorType(
+                ErrorType::RESPONSE_CODE_ERROR,
+                new Exception($body, $code)
+            );
         }
+
+        $this->checkErrorResponse($dtoResponse);
+
+        if (!$isSuccessStatusCode) {
+            throw ExceptionFactory::fromErrorType(
+                ErrorType::RESPONSE_CODE_ERROR,
+                new Exception($body, $code)
+            );
+        }
+
+        return $dtoResponse;
     }
 }
